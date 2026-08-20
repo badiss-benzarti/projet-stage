@@ -1,0 +1,171 @@
+<header class="mb-7 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">Espace étudiant</p>
+    <h1 class="mt-1 text-2xl font-medium text-sand-900">Ma demande de stage</h1>
+  </div>
+  @if (dossier(); as d) {
+    <gs-status-badge [status]="d.status" />
+  }
+</header>
+
+@if (chargement()) {
+  <gs-spinner label="Chargement…" />
+} @else {
+
+  @if (!modifiable()) {
+    <p class="mb-5 rounded-[6px] border border-petrol-300/50 bg-petrol-50 px-4 py-3 text-sm text-petrol-800">
+      Votre demande a été soumise, elle n’est plus modifiable. Suivez son avancement depuis
+      <a routerLink="/etudiant" class="underline underline-offset-2">le tableau de bord</a>.
+    </p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="space-y-6">
+
+    <section class="rounded-[6px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Nature du stage</p>
+      </div>
+
+      <div class="grid gap-5 px-6 py-6 sm:grid-cols-2">
+
+        <fieldset class="sm:col-span-2">
+          <legend class="mb-2 text-sm font-medium text-sand-700">Type de stage</legend>
+          <div class="flex flex-wrap gap-2">
+            @for (option of [
+              { valeur: 'PFE', libelle: 'Projet de fin d’études' },
+              { valeur: 'ETE', libelle: 'Stage d’été' }
+            ]; track option.valeur) {
+              <label
+                class="cursor-pointer rounded-[5px] border px-3.5 py-2 text-sm transition-colors"
+                [class]="
+                  form.controls.type.value === option.valeur
+                    ? 'border-petrol-600 bg-petrol-50 text-petrol-800 font-medium'
+                    : 'border-sand-300 text-sand-600 hover:border-sand-400'
+                "
+              >
+                <input type="radio" formControlName="type" [value]="option.valeur" class="sr-only" />
+                {{ option.libelle }}
+              </label>
+            }
+          </div>
+        </fieldset>
+
+        <div class="sm:col-span-2">
+          <label for="title" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Intitulé du sujet
+          </label>
+          <input
+            id="title"
+            formControlName="title"
+            placeholder="Plateforme de gestion des stages"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
+          />
+          @if (form.controls.title.touched && form.controls.title.invalid) {
+            <p class="mt-1.5 text-xs text-bad-500">L’intitulé est obligatoire.</p>
+          }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="description" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Description <span class="font-normal text-sand-400">— facultatif</span>
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="3"
+            placeholder="Contexte, technologies envisagées, objectifs…"
+            class="w-full resize-y rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="academicYear" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Année universitaire
+          </label>
+          <select
+            id="academicYear"
+            formControlName="academicYear"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
+          >
+            @for (annee of anneesUniversitaires; track annee) {
+              <option [value]="annee">{{ annee }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-[6px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Entreprise d’accueil et période</p>
+      </div>
+
+      <div class="grid gap-5 px-6 py-6 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="companyId" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Entreprise
+          </label>
+          <select
+            id="companyId"
+            formControlName="companyId"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
+          >
+            <option [ngValue]="null" disabled>Sélectionnez une entreprise…</option>
+            @for (entreprise of entreprises(); track entreprise.id) {
+              <option [ngValue]="entreprise.id">{{ entreprise.name }} — {{ entreprise.address }}</option>
+            }
+          </select>
+          @if (entreprises().length === 0) {
+            <p class="mt-1.5 text-xs text-warn-700">
+              Aucune entreprise référencée. Contactez le service des stages.
+            </p>
+          }
+        </div>
+
+        <div>
+          <label for="startDate" class="mb-1.5 block text-sm font-medium text-sand-700">Début</label>
+          <input
+            id="startDate"
+            type="date"
+            formControlName="startDate"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
+          />
+        </div>
+
+        <div>
+          <label for="endDate" class="mb-1.5 block text-sm font-medium text-sand-700">Fin</label>
+          <input
+            id="endDate"
+            type="date"
+            formControlName="endDate"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
+          />
+        </div>
+      </div>
+    </section>
+
+    @if (erreur(); as message) {
+      <p class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">
+        {{ message }}
+      </p>
+    }
+    @if (succes(); as message) {
+      <p class="rounded-[6px] border border-ok-500/25 bg-ok-50 px-4 py-3 text-sm text-ok-700">
+        {{ message }}
+      </p>
+    }
+
+    @if (modifiable()) {
+      <div class="flex items-center gap-3">
+        <button
+          type="submit"
+          [disabled]="enregistrement()"
+          class="rounded-[5px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60"
+        >
+          {{ dossier() ? 'Enregistrer les modifications' : 'Créer le brouillon' }}
+        </button>
+        <a routerLink="/etudiant" class="text-sm text-sand-500 hover:text-sand-800">Annuler</a>
+      </div>
+    }
+  </form>
+}

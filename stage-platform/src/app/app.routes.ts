@@ -40,8 +40,10 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/student/student-dashboard').then((m) => m.StudentDashboard),
           },
-          { path: 'demande', title: 'Ma demande', data: { titre: 'Ma demande de stage' }, loadComponent: placeholder },
-          { path: 'journal', title: 'Journal', data: { titre: 'Journal de stage' }, loadComponent: placeholder },
+          { path: 'demande', title: 'Ma demande',
+            loadComponent: () => import('./features/student/internship-request-page').then((m) => m.InternshipRequestPage) },
+          { path: 'journal', title: 'Journal de stage',
+            loadComponent: () => import('./features/student/journal-page').then((m) => m.JournalPage) },
           { path: 'documents', title: 'Documents', data: { titre: 'Mes documents' }, loadComponent: placeholder },
           { path: 'note', title: 'Ma note', data: { titre: 'Ma note de stage' }, loadComponent: placeholder },
           { path: 'reclamations', title: 'Réclamations', data: { titre: 'Mes réclamations' }, loadComponent: placeholder },

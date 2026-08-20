@@ -1,0 +1,163 @@
+<header class="mb-7 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">Espace étudiant</p>
+    <h1 class="mt-1 text-2xl font-medium text-sand-900">Journal de stage</h1>
+  </div>
+  @if (taches().length > 0) {
+    <button
+      type="button"
+      (click)="telechargerPdf()"
+      class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700"
+    >
+      Télécharger en PDF
+    </button>
+  }
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else if (!dossier()) {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state title="Aucun dossier de stage" hint="Déposez d’abord une demande de stage." />
+  </div>
+} @else {
+
+  @if (synthese(); as s) {
+    <div class="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-[6px] border border-sand-200 bg-sand-200 sm:grid-cols-4">
+      <div class="bg-white px-5 py-4">
+        <p class="eyebrow">Tâches saisies</p>
+        <p class="mt-1 text-2xl font-medium text-sand-900 tabular">{{ s.total }}</p>
+      </div>
+      <div class="bg-white px-5 py-4">
+        <p class="eyebrow">Validées</p>
+        <p class="mt-1 text-2xl font-medium text-ok-700 tabular">{{ s.validated }}</p>
+      </div>
+      <div class="bg-white px-5 py-4">
+        <p class="eyebrow">En attente</p>
+        <p class="mt-1 text-2xl font-medium text-warn-700 tabular">{{ s.pending }}</p>
+      </div>
+      <div class="bg-white px-5 py-4">
+        <p class="eyebrow">Heures validées</p>
+        <p class="mt-1 text-2xl font-medium text-sand-900 tabular">{{ s.validatedHours }}</p>
+      </div>
+    </div>
+  }
+
+  @if (!journalOuvert()) {
+    <p class="mb-6 rounded-[6px] border border-warn-500/25 bg-warn-50 px-4 py-3 text-sm text-warn-700">
+      Le journal n’est ouvert que pendant le stage. Votre dossier n’est pas encore
+      à l’état « En cours » — la saisie sera possible dès son démarrage.
+    </p>
+  }
+
+  @if (journalOuvert()) {
+    <section class="mb-6 rounded-[6px] border border-sand-200 bg-white">
+      <div class="flex items-center justify-between border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">{{ enEdition() ? 'Corriger la tâche refusée' : 'Nouvelle tâche' }}</p>
+        @if (enEdition()) {
+          <button type="button" (click)="annulerEdition()" class="text-xs text-sand-500 hover:text-sand-800">
+            Annuler la correction
+          </button>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="px-6 py-5">
+        <div class="grid gap-4 sm:grid-cols-[150px_1fr_110px]">
+          <div>
+            <label for="taskDate" class="mb-1.5 block text-sm font-medium text-sand-700">Date</label>
+            <input id="taskDate" type="date" formControlName="taskDate" [max]="aujourdhui"
+              class="w-full rounded-[6px] border border-sand-300 px-3 py-2 text-sm focus:border-petrol-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="title" class="mb-1.5 block text-sm font-medium text-sand-700">Tâche</label>
+            <input id="title" formControlName="title" placeholder="Mise en place du pipeline d’intégration continue"
+              class="w-full rounded-[6px] border border-sand-300 px-3 py-2 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+          </div>
+          <div>
+            <label for="hours" class="mb-1.5 block text-sm font-medium text-sand-700">Heures</label>
+            <input id="hours" type="number" step="0.5" min="0.5" max="12" formControlName="hours"
+              class="w-full rounded-[6px] border border-sand-300 px-3 py-2 text-sm tabular focus:border-petrol-500 focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label for="description" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Détail <span class="font-normal text-sand-400">— ce que l’encadrant lira</span>
+          </label>
+          <textarea id="description" formControlName="description" rows="2"
+            class="w-full resize-y rounded-[6px] border border-sand-300 px-3 py-2 text-sm focus:border-petrol-500 focus:outline-none"></textarea>
+        </div>
+
+        @if (erreur(); as message) {
+          <p class="mt-4 rounded-[5px] border border-bad-500/25 bg-bad-50 px-3 py-2 text-sm text-bad-700">{{ message }}</p>
+        }
+
+        <button type="submit" [disabled]="envoi()"
+          class="mt-4 rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+          {{ enEdition() ? 'Renvoyer pour validation' : 'Ajouter au journal' }}
+        </button>
+      </form>
+    </section>
+  }
+
+  <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Tâches saisies</p>
+    </div>
+
+    @if (taches().length === 0) {
+      <gs-empty-state
+        title="Journal vide"
+        hint="Saisissez vos tâches au fil de l’eau : l’encadrant les valide une à une, et elles alimentent votre évaluation."
+      />
+    } @else {
+      <ul class="divide-y divide-sand-100">
+        @for (tache of taches(); track tache.id) {
+          <li class="px-6 py-4">
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span class="font-mono text-xs text-sand-500 tabular">{{ tache.taskDate }}</span>
+              <span class="font-medium text-sand-900">{{ tache.title }}</span>
+              <span class="text-xs text-sand-500 tabular">{{ tache.hours }} h</span>
+
+              <span class="ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                [class]="tache.status === 'VALIDATED'
+                  ? 'border-ok-500/25 bg-ok-50 text-ok-700'
+                  : tache.status === 'REJECTED'
+                    ? 'border-bad-500/25 bg-bad-50 text-bad-700'
+                    : 'border-warn-500/25 bg-warn-50 text-warn-700'">
+                {{ statutMeta[tache.status].label }}
+              </span>
+            </div>
+
+            @if (tache.description) {
+              <p class="mt-1 text-sm text-sand-600">{{ tache.description }}</p>
+            }
+
+            @if (tache.status === 'REJECTED' && tache.rejectionReason) {
+              <div class="mt-2 rounded-[5px] border border-bad-500/20 bg-bad-50 px-3 py-2">
+                <p class="text-sm text-bad-700">
+                  <span class="font-medium">Refusée</span> — {{ tache.rejectionReason }}
+                </p>
+                <button type="button" (click)="corriger(tache)"
+                  class="mt-1.5 text-xs font-medium text-bad-700 underline underline-offset-2">
+                  Corriger et renvoyer
+                </button>
+              </div>
+            }
+
+            @if (tache.status === 'VALIDATED' && tache.validatedBy) {
+              <p class="mt-1 text-xs text-sand-400">Validée par {{ tache.validatedBy }}</p>
+            }
+
+            @if (tache.status !== 'VALIDATED') {
+              <button type="button" (click)="supprimer(tache)"
+                class="mt-1.5 text-xs text-sand-400 hover:text-bad-600">
+                Supprimer
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}
