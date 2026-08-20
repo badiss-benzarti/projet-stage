@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: lb://AUTH-SERVICE
+              predicates:
+                - Path=/api/auth/**
+
+            - id: user-service
+              uri: lb://USER-SERVICE
+              predicates:
+                - Path=/api/users/**
+
+            - id: internship-service
+              uri: lb://INTERNSHIP-SERVICE
+              predicates:
+                - Path=/api/internships/**
+
+            - id: evaluation-service
+              uri: lb://EVALUATION-SERVICE
+              predicates:
+                - Path=/api/evaluations/**
+
+            - id: document-service
+              uri: lb://DOCUMENT-SERVICE
+              predicates:
+                - Path=/api/documents/**
+
+            - id: notification-service
+              uri: lb://NOTIFICATION-SERVICE
+              predicates:
+                - Path=/api/notifications/**
+
+            - id: ml-service
+              uri: http://${ML_HOST:localhost}:8087
+              predicates:
+                - Path=/api/ml/**
+              filters:
+                - StripPrefix=2
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOriginPatterns: "*"
+                allowedMethods: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+                allowedHeaders: "*"
+                allowCredentials: true

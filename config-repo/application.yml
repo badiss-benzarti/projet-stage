@@ -1,0 +1,57 @@
+# =====================================================================
+#  Configuration COMMUNE a tous les microservices
+#  Servie par le config-server a chaque service au demarrage.
+#  Une valeur definie ici peut etre surchargee dans <service>.yml
+# =====================================================================
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: 5672
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASS:guest}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 15MB
+
+# ---- Securite : secret partage entre auth-service et le gateway ----
+jwt:
+  secret: "${JWT_SECRET:scN2uLKsKTc6NRDyWMBd89hA/taKSV5bG7nz+MwIyY1VAxpenAz1sk7nyhcLREKT}"
+  expiration: 86400000          # 24 h en millisecondes
+  refresh-expiration: 604800000 # 7 jours
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    com.gestionstages: DEBUG
+    org.springframework.web: INFO
