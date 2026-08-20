@@ -1,0 +1,30 @@
+# Normalisation : LF dans le depot, conversion auto a la sortie
+* text=auto eol=lf
+
+# Scripts Unix : DOIVENT rester en LF (sinon le build Docker Alpine echoue)
+mvnw        text eol=lf
+*.sh        text eol=lf
+*.bash      text eol=lf
+Dockerfile  text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+
+# Scripts Windows : CRLF
+mvnw.cmd    text eol=crlf
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binaires : aucune conversion
+*.jar   binary
+*.war   binary
+*.pkl   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.xlsx  binary
+*.woff  binary
+*.woff2 binary
