@@ -39,6 +39,12 @@ export interface Internship {
   readonly academicYear: string;
   readonly companyId: number | null;
   readonly companyName: string | null;
+  readonly companyAddress: string | null;
+  readonly companyEmail: string | null;
+  readonly companyPhone: string | null;
+  readonly contactName: string | null;
+  readonly contactEmail: string | null;
+  readonly contactPhone: string | null;
   readonly supervisorId: number | null;
   readonly supervisorName: string | null;
   readonly startDate: string | null;
@@ -56,6 +62,12 @@ export interface InternshipRequest {
   readonly academicYear: string;
   readonly companyId: number | null;
   readonly companyName: string | null;
+  readonly companyAddress: string | null;
+  readonly companyEmail: string | null;
+  readonly companyPhone: string | null;
+  readonly contactName: string | null;
+  readonly contactEmail: string | null;
+  readonly contactPhone: string | null;
   readonly startDate: string | null;
   readonly endDate: string | null;
 }

@@ -6,6 +6,7 @@ import {
   InternshipStatus,
   STATUS_META,
 } from '../../core/models/internship.models';
+import { DocumentService } from '../../core/services/document.service';
 import { InternshipService } from '../../core/services/internship.service';
 import { InternshipTable } from '../../shared/internship-table';
 import { Spinner } from '../../shared/spinner';
@@ -26,6 +27,7 @@ import { StatusBadge } from '../../shared/status-badge';
 })
 export class InternshipReviewPage {
   private readonly internships = inject(InternshipService);
+  private readonly documents = inject(DocumentService);
 
   protected readonly chargement = signal(true);
   protected readonly envoi = signal(false);
@@ -38,6 +40,46 @@ export class InternshipReviewPage {
   protected readonly actionEnAttente = signal<AvailableAction | null>(null);
 
   protected readonly meta = STATUS_META;
+
+  protected readonly attestationEnCours = signal(false);
+  protected readonly attestationMessage = signal<string | null>(null);
+
+  /**
+   * L'attestation n'est generable que pour les structures internes et sur
+   * un stage cloture. Le backend applique la meme regle : on n'affiche le
+   * bouton que quand il a une chance d'aboutir.
+   */
+  protected readonly attestationPossible = computed(() => {
+    const d = this.selection();
+    if (!d || d.status !== 'COMPLETED') {
+      return false;
+    }
+    const nom = (d.companyName ?? '').toLowerCase();
+    return nom.includes('dsi') || nom.includes('espritech') || nom.includes('esprittech');
+  });
+
+  protected genererAttestation(): void {
+    const d = this.selection();
+    if (!d || this.attestationEnCours()) {
+      return;
+    }
+    this.attestationEnCours.set(true);
+    this.attestationMessage.set(null);
+    this.erreur.set(null);
+
+    this.documents.generateAttestation(d.id).subscribe({
+      next: (doc) => {
+        this.attestationEnCours.set(false);
+        this.attestationMessage.set(
+          `Attestation générée (${doc.originalName}) et mise à disposition de l’étudiant.`,
+        );
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.attestationEnCours.set(false);
+        this.erreur.set(e.error?.message ?? 'Génération impossible.');
+      },
+    });
+  }
 
   protected readonly filtres: readonly (InternshipStatus | null)[] = [
     null,

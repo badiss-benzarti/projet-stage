@@ -62,6 +62,30 @@ public class Internship {
     @Column(name = "company_name", length = 150)
     private String companyName;
 
+    // Informations saisies par l'etudiant quand l'entreprise d'accueil
+    // n'est pas encore referencee sur la plateforme. Le cahier des charges
+    // les exige : un etudiant trouve souvent son stage dans une structure
+    // qui n'a aucun compte chez nous.
+    @Column(name = "company_address", length = 255)
+    private String companyAddress;
+
+    @Column(name = "company_email", length = 120)
+    private String companyEmail;
+
+    @Column(name = "company_phone", length = 30)
+    private String companyPhone;
+
+    // Contact de l'encadrant en entreprise, avant qu'un compte ne lui
+    // soit cree.
+    @Column(name = "contact_name", length = 120)
+    private String contactName;
+
+    @Column(name = "contact_email", length = 120)
+    private String contactEmail;
+
+    @Column(name = "contact_phone", length = 30)
+    private String contactPhone;
+
     // ---- Encadrant, designe par l'entreprise a l'acceptation ----
     @Column(name = "supervisor_id")
     private Long supervisorId;

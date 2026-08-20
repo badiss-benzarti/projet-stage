@@ -45,10 +45,13 @@ public class InternshipWorkflow {
                     new Transition(COMPANY_PENDING, Set.of(CHEF_DEPARTEMENT_STAGE), false,
                             "Transmettre a l'entreprise")),
 
+            // Le service des stages peut repondre a la place de
+            // l'entreprise : toutes les structures d'accueil n'ont pas de
+            // compte, et beaucoup repondent par courriel ou sur papier.
             COMPANY_PENDING, List.of(
-                    new Transition(ACCEPTED, Set.of(ENTREPRISE), false,
+                    new Transition(ACCEPTED, Set.of(ENTREPRISE, CHEF_DEPARTEMENT_STAGE), false,
                             "Accepter le stagiaire"),
-                    new Transition(REFUSED, Set.of(ENTREPRISE), true,
+                    new Transition(REFUSED, Set.of(ENTREPRISE, CHEF_DEPARTEMENT_STAGE), true,
                             "Refuser le stagiaire")),
 
             ACCEPTED, List.of(

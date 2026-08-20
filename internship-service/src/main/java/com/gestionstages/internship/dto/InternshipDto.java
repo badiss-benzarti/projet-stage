@@ -21,6 +21,12 @@ public final class InternshipDto {
                     message = "Annee universitaire attendue au format 2026-2027") String academicYear,
             Long companyId,
             @Size(max = 150) String companyName,
+            @Size(max = 255) String companyAddress,
+            @Email(message = "Email de l'entreprise invalide") @Size(max = 120) String companyEmail,
+            @Size(max = 30) String companyPhone,
+            @Size(max = 120) String contactName,
+            @Email(message = "Email de l'encadrant invalide") @Size(max = 120) String contactEmail,
+            @Size(max = 30) String contactPhone,
             // Pas de contrainte de date future : une inscription tardive, sur un
             // stage deja commence, est un cas reel. La coherence debut/fin est
             // verifiee dans le service.
@@ -51,6 +57,8 @@ public final class InternshipDto {
             Long studentId, String studentName, String studentEmail,
             InternshipType type, String title, String description, String academicYear,
             Long companyId, String companyName,
+            String companyAddress, String companyEmail, String companyPhone,
+            String contactName, String contactEmail, String contactPhone,
             Long supervisorId, String supervisorName,
             LocalDate startDate, LocalDate endDate,
             InternshipStatus status, String rejectionReason,
@@ -62,6 +70,8 @@ public final class InternshipDto {
                     i.getId(), i.getStudentId(), i.getStudentName(), i.getStudentEmail(),
                     i.getType(), i.getTitle(), i.getDescription(), i.getAcademicYear(),
                     i.getCompanyId(), i.getCompanyName(),
+                    i.getCompanyAddress(), i.getCompanyEmail(), i.getCompanyPhone(),
+                    i.getContactName(), i.getContactEmail(), i.getContactPhone(),
                     i.getSupervisorId(), i.getSupervisorName(),
                     i.getStartDate(), i.getEndDate(),
                     i.getStatus(), i.getRejectionReason(),

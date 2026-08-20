@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
-import { Internship } from '../../core/models/internship.models';
+import {
+  DocumentRequest,
+  Internship,
+  REQUEST_STATUS_LABELS,
+  REQUEST_TYPE_LABELS,
+  RequestType,
+} from '../../core/models/internship.models';
 import {
   DOCUMENT_STATUS_META,
   DOCUMENT_TYPE_LABELS,
@@ -32,6 +38,13 @@ export class DocumentsPage {
   protected readonly liste = signal<readonly StageDocument[]>([]);
   protected readonly typeChoisi = signal<DocumentType>('CONVENTION');
 
+  // --- Demandes administratives : convention et lettre d'affectation ---
+  protected readonly demandes = signal<readonly DocumentRequest[]>([]);
+  protected readonly demandeEnCours = signal(false);
+  protected readonly requestTypeLabels = REQUEST_TYPE_LABELS;
+  protected readonly requestStatusLabels = REQUEST_STATUS_LABELS;
+  protected readonly typesDemandables: readonly RequestType[] = ['CONVENTION', 'LETTRE_AFFECTATION'];
+
   protected readonly typeLabels = DOCUMENT_TYPE_LABELS;
   protected readonly statutMeta = DOCUMENT_STATUS_META;
 
@@ -50,6 +63,7 @@ export class DocumentsPage {
         this.dossier.set(d);
         if (d) {
           this.recharger(d.id);
+          this.rechargerDemandes(d.id);
         } else {
           this.chargement.set(false);
         }
@@ -65,6 +79,39 @@ export class DocumentsPage {
         this.chargement.set(false);
       },
       error: () => this.chargement.set(false),
+    });
+  }
+
+  private rechargerDemandes(internshipId: number): void {
+    this.internships.requestsOf(internshipId).subscribe({
+      next: (liste) => this.demandes.set(liste),
+      error: () => this.demandes.set([]),
+    });
+  }
+
+  /**
+   * Demande de convention ou de lettre d'affectation.
+   *
+   * Distinct du depot : ici l'etudiant DEMANDE un document que le service
+   * des stages editera ; le depot concerne le fichier signe qu'il rapporte.
+   */
+  protected demander(type: RequestType): void {
+    const d = this.dossier();
+    if (!d || this.demandeEnCours()) {
+      return;
+    }
+    this.demandeEnCours.set(true);
+    this.erreur.set(null);
+
+    this.internships.askDocument(d.id, type).subscribe({
+      next: (demande) => {
+        this.demandes.update((liste) => [demande, ...liste]);
+        this.demandeEnCours.set(false);
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.demandeEnCours.set(false);
+        this.erreur.set(e.error?.message ?? 'Demande impossible.');
+      },
     });
   }
 

@@ -87,6 +87,25 @@
           </div>
         }
 
+        @if (attestationPossible()) {
+          <div class="border-t border-sand-100 px-5 py-4">
+            <p class="eyebrow mb-2">Attestation de stage</p>
+            <p class="mb-3 text-xs leading-relaxed text-sand-500">
+              Stage effectué dans une structure interne : la plateforme peut délivrer
+              l’attestation. Pour une entreprise externe, elle doit être déposée par l’étudiant.
+            </p>
+            <button type="button" [disabled]="attestationEnCours()" (click)="genererAttestation()"
+              class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+              {{ attestationEnCours() ? 'Génération…' : 'Générer l’attestation' }}
+            </button>
+            @if (attestationMessage(); as message) {
+              <p class="mt-3 rounded-[5px] border border-ok-500/25 bg-ok-50 px-3 py-2 text-sm text-ok-700">
+                {{ message }}
+              </p>
+            }
+          </div>
+        }
+
         <!-- Actions autorisees par le backend pour ce role et cet etat -->
         @if (d.availableActions.length > 0) {
           <div class="border-t border-sand-100 bg-sand-50/60 px-5 py-4">
