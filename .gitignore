@@ -1,0 +1,60 @@
+### Java / Maven ###
+target/
+*.jar
+*.war
+*.class
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+### VS Code ###
+.vscode/
+
+### Eclipse / STS ###
+.classpath
+.project
+.settings/
+.factorypath
+
+### Node / Angular ###
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+
+### Python / ML ###
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.pkl
+.ipynb_checkpoints/
+
+### SonarQube ###
+.scannerwork/
+.sonar/
+
+### Logs & runtime ###
+*.log
+logs/
+uploads/
+storage/
+
+### Secrets & env ###
+.env
+.env.*
+!.env.example
+application-local.yml
+
+### OS ###
+Thumbs.db
+Desktop.ini
+.DS_Store
