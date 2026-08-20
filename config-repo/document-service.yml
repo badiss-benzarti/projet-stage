@@ -8,8 +8,17 @@ spring:
     password: ${DB_PASS:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-# --- Stockage des fichiers deposes ---
 app:
+  # Stockage des fichiers deposes. Volume Docker en production.
   storage:
     location: ${STORAGE_PATH:./storage}
     allowed-types: application/pdf,image/png,image/jpeg
+
+  # Attestation en ligne. Le cahier des charges la reserve aux stages
+  # effectues a la DSI et chez EspritTech : les structures internes,
+  # dont l'ecole peut attester elle-meme. Pour un stage externe,
+  # l'attestation vient de l'entreprise et doit etre deposee.
+  attestation:
+    structures-internes: DSI,EspritTech
+    etablissement: ESPRIT
+    lieu: Tunis
