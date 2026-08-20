@@ -58,3 +58,7 @@ application-local.yml
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+### Dumps Windows ###
+*.stackdump
+*.dmp
