@@ -1,0 +1,485 @@
+### ====================================================================
+###  Plateforme de gestion des stages - jeu de tests complet
+###
+###  IntelliJ : cliquez sur la fleche verte a gauche de chaque requete.
+###  Les jetons sont captures automatiquement, executez les requetes
+###  d'authentification (section 1) AVANT le reste.
+### ====================================================================
+
+@gateway = http://localhost:8090
+@json = application/json
+
+### --------------------------------------------------------------
+### 1. AUTHENTIFICATION - a executer en premier
+### --------------------------------------------------------------
+
+### 1.1 Connexion ADMIN
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "admin@esprit.tn", "password": "Admin@2026" }
+
+> {% client.global.set("tokenAdmin", response.body.token); %}
+
+### 1.2 Connexion ETUDIANT
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "ahmed.bensalah@esprit.tn", "password": "Etudiant@2026" }
+
+> {% client.global.set("tokenEtudiant", response.body.token); %}
+
+### 1.3 Connexion ENTREPRISE
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "soc.tech@partner.tn", "password": "Entreprise@2026" }
+
+> {% client.global.set("tokenEntreprise", response.body.token); %}
+
+### 1.4 Connexion ENCADRANT
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "encadrant@partner.tn", "password": "Encadrant@2026" }
+
+> {% client.global.set("tokenEncadrant", response.body.token); %}
+
+### 1.5 Connexion CHEF DEPARTEMENT STAGE
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "chef.stages@esprit.tn", "password": "ChefStage@2026" }
+
+> {% client.global.set("tokenChefStage", response.body.token); %}
+
+### 1.6 Connexion CHEF DEPARTEMENT PEDAGOGIQUE
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "chef.pedago@esprit.tn", "password": "ChefPedago@2026" }
+
+> {% client.global.set("tokenPedago", response.body.token); %}
+
+### 1.7 Profil du porteur du jeton
+GET {{gateway}}/api/auth/me
+Authorization: Bearer {{tokenEtudiant}}
+
+### 1.8 Inscription d'un nouveau compte
+POST {{gateway}}/api/auth/register
+Content-Type: {{json}}
+
+{
+  "email": "nouveau.etudiant@esprit.tn",
+  "password": "Etudiant@2026",
+  "firstName": "Sarra",
+  "lastName": "Jelassi",
+  "role": "ETUDIANT"
+}
+
+### 1.9 NEGATIF - mauvais mot de passe (attendu 401)
+POST {{gateway}}/api/auth/login
+Content-Type: {{json}}
+
+{ "email": "admin@esprit.tn", "password": "faux" }
+
+### 1.10 NEGATIF - sans jeton (attendu 401)
+GET {{gateway}}/api/auth/me
+
+### --------------------------------------------------------------
+### 2. PROFILS  (user-service)
+### --------------------------------------------------------------
+
+### 2.1 Profil etudiant
+GET {{gateway}}/api/users/students/me
+Authorization: Bearer {{tokenEtudiant}}
+
+### 2.2 Creer le profil etudiant (409 s'il existe deja)
+POST {{gateway}}/api/users/students/me
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{
+  "firstName": "Ahmed",
+  "lastName": "Ben Salah",
+  "email": "ahmed.bensalah@esprit.tn",
+  "phone": "20123456",
+  "cin": "12345678",
+  "classe": "4SAE3",
+  "departement": "Genie Logiciel"
+}
+
+### 2.3 Liste des etudiants - CHEF DEPT STAGE (attendu 200)
+GET {{gateway}}/api/users/students?page=0&size=20
+Authorization: Bearer {{tokenChefStage}}
+
+### 2.4 NEGATIF - un ETUDIANT liste tous les etudiants (attendu 403)
+GET {{gateway}}/api/users/students
+Authorization: Bearer {{tokenEtudiant}}
+
+### 2.5 Profil entreprise
+GET {{gateway}}/api/users/companies/me
+Authorization: Bearer {{tokenEntreprise}}
+
+### 2.6 Annuaire des entreprises
+GET {{gateway}}/api/users/companies
+Authorization: Bearer {{tokenEtudiant}}
+
+### 2.7 Encadrants d'une entreprise
+GET {{gateway}}/api/users/companies/1/supervisors
+Authorization: Bearer {{tokenEtudiant}}
+
+### 2.8 Profil encadrant
+GET {{gateway}}/api/users/supervisors/me
+Authorization: Bearer {{tokenEncadrant}}
+
+### 2.9 NEGATIF - un ENCADRANT declare un encadrant (attendu 403)
+POST {{gateway}}/api/users/supervisors
+Authorization: Bearer {{tokenEncadrant}}
+Content-Type: {{json}}
+
+{ "userId": 99, "firstName": "X", "lastName": "Y", "email": "x@y.tn", "phone": "", "position": "" }
+
+### --------------------------------------------------------------
+### 3. MODULE 1 - DEMANDES ET WORKFLOW  (internship-service)
+###    Executez 3.1 a 3.9 dans l'ordre : chaque transition depend
+###    de la precedente.
+### --------------------------------------------------------------
+
+### 3.1 ETUDIANT cree un brouillon
+POST {{gateway}}/api/internships
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{
+  "type": "PFE",
+  "title": "Plateforme de gestion des stages",
+  "description": "Microservices Spring Boot et frontend Angular",
+  "academicYear": "2026-2027",
+  "companyId": 1,
+  "companyName": "SocieteTech Partner",
+  "startDate": "2026-07-01",
+  "endDate": "2026-12-31"
+}
+
+> {% client.global.set("stageId", response.body.id); %}
+
+### 3.2 ETUDIANT soumet la demande  (DRAFT -> SUBMITTED)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "target": "SUBMITTED" }
+
+### 3.3 CHEF prend en charge  (SUBMITTED -> UNDER_REVIEW)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenChefStage}}
+Content-Type: {{json}}
+
+{ "target": "UNDER_REVIEW" }
+
+### 3.4 NEGATIF - l'ETUDIANT tente d'approuver (attendu 403)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "target": "APPROVED" }
+
+### 3.5 NEGATIF - refus sans motif (attendu 400)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenChefStage}}
+Content-Type: {{json}}
+
+{ "target": "REJECTED" }
+
+### 3.6 CHEF approuve  (UNDER_REVIEW -> APPROVED)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenChefStage}}
+Content-Type: {{json}}
+
+{ "target": "APPROVED" }
+
+### 3.7 NEGATIF - saut d'etape vers ACCEPTED (attendu 409)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenChefStage}}
+Content-Type: {{json}}
+
+{ "target": "ACCEPTED" }
+
+### 3.8 CHEF transmet a l'entreprise  (APPROVED -> COMPANY_PENDING)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenChefStage}}
+Content-Type: {{json}}
+
+{ "target": "COMPANY_PENDING" }
+
+### 3.9 ENTREPRISE accepte et designe l'encadrant  (-> ACCEPTED)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenEntreprise}}
+Content-Type: {{json}}
+
+{ "target": "ACCEPTED", "supervisorId": 1, "supervisorName": "Youssef Gharbi" }
+
+### 3.10 Demarrage du stage  (ACCEPTED -> IN_PROGRESS)
+POST {{gateway}}/api/internships/{{stageId}}/transition
+Authorization: Bearer {{tokenEntreprise}}
+Content-Type: {{json}}
+
+{ "target": "IN_PROGRESS" }
+
+### 3.11 Detail du dossier : etat, actions possibles, historique complet
+GET {{gateway}}/api/internships/{{stageId}}
+Authorization: Bearer {{tokenChefStage}}
+
+### 3.12 Mes stages (etudiant)
+GET {{gateway}}/api/internships/mine
+Authorization: Bearer {{tokenEtudiant}}
+
+### 3.13 Stages de mon entreprise
+GET {{gateway}}/api/internships/company
+Authorization: Bearer {{tokenEntreprise}}
+
+### 3.14 Stages que j'encadre
+GET {{gateway}}/api/internships/supervision
+Authorization: Bearer {{tokenEncadrant}}
+
+### 3.15 Tous les stages du departement
+GET {{gateway}}/api/internships/department
+Authorization: Bearer {{tokenChefStage}}
+
+### 3.16 Statistiques par etat
+GET {{gateway}}/api/internships/statistics
+Authorization: Bearer {{tokenChefStage}}
+
+### 3.17 ETUDIANT demande une lettre d'affectation
+POST {{gateway}}/api/internships/{{stageId}}/requests
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "type": "LETTRE_AFFECTATION" }
+
+> {% client.global.set("demandeId", response.body.id); %}
+
+### 3.18 Demandes en attente
+GET {{gateway}}/api/internships/requests/pending
+Authorization: Bearer {{tokenChefStage}}
+
+### 3.19 CHEF edite la lettre
+PATCH {{gateway}}/api/internships/requests/{{demandeId}}
+Authorization: Bearer {{tokenChefStage}}
+Content-Type: {{json}}
+
+{ "status": "ISSUED" }
+
+### --------------------------------------------------------------
+### 4. MODULE 2 - JOURNAL DE STAGE  (evaluation-service)
+###    Le stage doit etre IN_PROGRESS (section 3 jusqu'a 3.10).
+### --------------------------------------------------------------
+
+### 4.1 ETUDIANT saisit une tache
+POST {{gateway}}/api/evaluations/internships/{{stageId}}/tasks
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{
+  "taskDate": "2026-08-17",
+  "title": "Mise en place du pipeline CI",
+  "description": "GitHub Actions, build Maven et execution des tests",
+  "hours": 7
+}
+
+> {% client.global.set("tacheId", response.body.id); %}
+
+### 4.2 Deuxieme tache
+POST {{gateway}}/api/evaluations/internships/{{stageId}}/tasks
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{
+  "taskDate": "2026-08-18",
+  "title": "Dockerisation des services",
+  "description": "Dockerfiles multi-stage et docker-compose",
+  "hours": 6.5
+}
+
+### 4.3 NEGATIF - tache dans le futur (attendu 400)
+POST {{gateway}}/api/evaluations/internships/{{stageId}}/tasks
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "taskDate": "2027-12-01", "title": "Tache future", "description": "", "hours": 4 }
+
+### 4.4 NEGATIF - duree de 20 heures (attendu 400)
+POST {{gateway}}/api/evaluations/internships/{{stageId}}/tasks
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "taskDate": "2026-08-19", "title": "Journee trop longue", "description": "", "hours": 20 }
+
+### 4.5 Journal du stage
+GET {{gateway}}/api/evaluations/internships/{{stageId}}/tasks
+Authorization: Bearer {{tokenEncadrant}}
+
+### 4.6 ENCADRANT valide une tache
+PATCH {{gateway}}/api/evaluations/tasks/{{tacheId}}/decision
+Authorization: Bearer {{tokenEncadrant}}
+Content-Type: {{json}}
+
+{ "status": "VALIDATED" }
+
+### 4.7 NEGATIF - refus sans motif (attendu 400)
+PATCH {{gateway}}/api/evaluations/tasks/{{tacheId}}/decision
+Authorization: Bearer {{tokenEncadrant}}
+Content-Type: {{json}}
+
+{ "status": "REJECTED" }
+
+### 4.8 NEGATIF - l'ETUDIANT valide sa propre tache (attendu 403)
+PATCH {{gateway}}/api/evaluations/tasks/{{tacheId}}/decision
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "status": "VALIDATED" }
+
+### 4.9 Synthese du journal
+GET {{gateway}}/api/evaluations/internships/{{stageId}}/tasks/summary
+Authorization: Bearer {{tokenEncadrant}}
+
+### --------------------------------------------------------------
+### 5. MODULE 2 - GRILLE ET NOTE
+### --------------------------------------------------------------
+
+### 5.1 ENCADRANT remplit la grille  (16/15/16/15/16 -> 15,75)
+PUT {{gateway}}/api/evaluations/internships/{{stageId}}
+Authorization: Bearer {{tokenEncadrant}}
+Content-Type: {{json}}
+
+{
+  "technicalScore": 16,
+  "qualityScore": 15,
+  "autonomyScore": 16,
+  "communicationScore": 15,
+  "punctualityScore": 16,
+  "globalComment": "Stagiaire autonome et rigoureux, bonne maitrise des outils DevOps.",
+  "remarks": "A encourager a documenter davantage ses choix techniques."
+}
+
+### 5.2 NEGATIF - l'ETUDIANT lit sa note avant validation (attendu 403)
+GET {{gateway}}/api/evaluations/internships/{{stageId}}
+Authorization: Bearer {{tokenEtudiant}}
+
+### 5.3 ENCADRANT valide la grille : la note devient definitive
+POST {{gateway}}/api/evaluations/internships/{{stageId}}/submit
+Authorization: Bearer {{tokenEncadrant}}
+
+### 5.4 ETUDIANT voit sa note et le detail du calcul
+GET {{gateway}}/api/evaluations/internships/{{stageId}}
+Authorization: Bearer {{tokenEtudiant}}
+
+### 5.5 Statistiques des notes
+GET {{gateway}}/api/evaluations/statistics
+Authorization: Bearer {{tokenPedago}}
+
+### --------------------------------------------------------------
+### 6. EXPORTS
+###    IntelliJ propose d'enregistrer le fichier binaire renvoye.
+### --------------------------------------------------------------
+
+### 6.1 Export XLSX des notes
+GET {{gateway}}/api/evaluations/export/xlsx
+Authorization: Bearer {{tokenPedago}}
+
+### 6.2 Journal de stage en PDF
+GET {{gateway}}/api/evaluations/internships/{{stageId}}/journal/pdf
+Authorization: Bearer {{tokenEtudiant}}
+
+### --------------------------------------------------------------
+### 7. RECLAMATION AVEC BOUCLAGE
+###    Executez 7.1 a 7.7 dans l'ordre.
+### --------------------------------------------------------------
+
+### 7.1 ETUDIANT ouvre une reclamation
+POST {{gateway}}/api/evaluations/claims
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{
+  "internshipId": {{stageId}},
+  "type": "NOTE",
+  "subject": "Contestation de la note de stage",
+  "message": "Je conteste la note d'assiduite : mes retards etaient justifies par un certificat medical."
+}
+
+> {% client.global.set("reclamationId", response.body.id); %}
+
+### 7.2 CHEF PEDAGO prend en charge  (OPEN -> IN_REVIEW)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/take
+Authorization: Bearer {{tokenPedago}}
+
+### 7.3 CHEF PEDAGO repond  (-> RESPONDED)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/messages
+Authorization: Bearer {{tokenPedago}}
+Content-Type: {{json}}
+
+{ "content": "Apres verification aupres de l'encadrant, deux retards ne sont pas justifies." }
+
+### 7.4 ETUDIANT relance : LE BOUCLAGE  (-> REOPENED, reopenCount +1)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/messages
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "content": "Je joins le certificat medical couvrant ces deux journees, pouvez-vous reexaminer ?" }
+
+### 7.5 CHEF PEDAGO repond de nouveau  (-> RESPONDED)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/messages
+Authorization: Bearer {{tokenPedago}}
+Content-Type: {{json}}
+
+{ "content": "Certificat pris en compte, la note d'assiduite est revue a la hausse." }
+
+### 7.6 NEGATIF - l'ETUDIANT tente de cloturer (attendu 403)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/close
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "content": "Je cloture" }
+
+### 7.7 CHEF PEDAGO cloture  (-> CLOSED)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/close
+Authorization: Bearer {{tokenPedago}}
+Content-Type: {{json}}
+
+{ "content": "Dossier clos, la note corrigee est enregistree." }
+
+### 7.8 NEGATIF - message sur une reclamation close (attendu 400)
+POST {{gateway}}/api/evaluations/claims/{{reclamationId}}/messages
+Authorization: Bearer {{tokenEtudiant}}
+Content-Type: {{json}}
+
+{ "content": "Une derniere question" }
+
+### 7.9 Fil complet de la reclamation
+GET {{gateway}}/api/evaluations/claims/{{reclamationId}}
+Authorization: Bearer {{tokenPedago}}
+
+### 7.10 Mes reclamations (etudiant)
+GET {{gateway}}/api/evaluations/claims/mine
+Authorization: Bearer {{tokenEtudiant}}
+
+### 7.11 Reclamations a traiter
+GET {{gateway}}/api/evaluations/claims
+Authorization: Bearer {{tokenPedago}}
+
+### --------------------------------------------------------------
+### 8. INFRASTRUCTURE
+### --------------------------------------------------------------
+
+### 8.1 Sante du gateway
+GET {{gateway}}/actuator/health
+
+### 8.2 Registre Eureka (JSON)
+GET http://localhost:8761/eureka/apps
+Accept: application/json
+
+### 8.3 Configuration servie a internship-service
+GET http://localhost:8888/internship-service/default
