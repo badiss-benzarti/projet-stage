@@ -65,3 +65,7 @@ Desktop.ini
 
 ### Exports de demonstration ###
 exports-demo/
+
+### Modele entraine (regenere au build de l image) ###
+ml-service/model/*.pkl
+ml-service/model/metrics.json
