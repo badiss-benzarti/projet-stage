@@ -1,0 +1,92 @@
+<header class="mb-7">
+  <p class="eyebrow">Espace étudiant</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Ma note de stage</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else if (note(); as e) {
+
+  <div class="grid gap-6 lg:grid-cols-[1fr_260px]">
+    <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Détail du calcul</p>
+      </div>
+
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-sand-100 text-left">
+            <th class="eyebrow px-6 py-2.5 font-medium">Critère</th>
+            <th class="eyebrow px-6 py-2.5 text-right font-medium">Note</th>
+            <th class="eyebrow px-6 py-2.5 text-right font-medium">Poids</th>
+            <th class="eyebrow px-6 py-2.5 text-right font-medium">Contribution</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-sand-100">
+          @for (critere of criteres(e); track critere) {
+            <tr>
+              <td class="px-6 py-3 text-sand-800">{{ critere }}</td>
+              <td class="px-6 py-3 text-right text-sand-900 tabular">
+                {{ e.breakdown[critere].note }} / {{ e.breakdown[critere].sur }}
+              </td>
+              <td class="px-6 py-3 text-right text-sand-500 tabular">{{ e.breakdown[critere].poids }}</td>
+              <td class="px-6 py-3 text-right font-medium text-sand-900 tabular">
+                {{ e.breakdown[critere].contribution }}
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr class="border-t border-sand-200 bg-sand-50">
+            <td colspan="3" class="px-6 py-3 text-right font-medium text-sand-700">Note finale</td>
+            <td class="px-6 py-3 text-right text-lg font-medium text-petrol-800 tabular">
+              {{ e.finalScore }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      @if (e.globalComment) {
+        <div class="border-t border-sand-100 px-6 py-5">
+          <p class="eyebrow mb-2">Appréciation de l’encadrant</p>
+          <p class="text-sm leading-relaxed whitespace-pre-line text-sand-700">{{ e.globalComment }}</p>
+          @if (e.remarks) {
+            <p class="mt-3 text-sm text-sand-500 italic">{{ e.remarks }}</p>
+          }
+        </div>
+      }
+    </section>
+
+    <aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
+      <div class="rounded-[6px] border border-sand-200 bg-white px-5 py-6 text-center">
+        <p class="eyebrow">Note finale</p>
+        <p class="mt-2 text-4xl font-medium text-petrol-800 tabular">
+          {{ e.finalScore }}<span class="text-lg text-sand-400"> / 20</span>
+        </p>
+        <p class="mt-3 text-xs text-sand-500">
+          {{ e.supervisorName }}@if (e.companyName) { · {{ e.companyName }} }
+        </p>
+      </div>
+
+      <div class="rounded-[6px] border border-sand-200 bg-white px-5 py-4">
+        <p class="text-sm text-sand-600">
+          Vous estimez que cette note ne reflète pas votre travail ?
+        </p>
+        <a
+          routerLink="/etudiant/reclamations"
+          class="mt-3 block rounded-[5px] border border-sand-300 px-4 py-2 text-center text-sm font-medium text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700"
+        >
+          Déposer une réclamation
+        </a>
+      </div>
+    </aside>
+  </div>
+
+} @else {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state
+      title="Évaluation non disponible"
+      [hint]="message() ?? 'Votre note apparaîtra ici dès que l’encadrant aura validé sa grille.'"
+    />
+  </div>
+}

@@ -1,0 +1,63 @@
+<header class="mb-7">
+  <p class="eyebrow">Département pédagogique</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Tableau de bord</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+
+  <section class="mb-7 grid gap-4 sm:grid-cols-3">
+    <a routerLink="/departement-pedagogique/notes"
+      class="rounded-[6px] border border-sand-200 bg-white px-5 py-4 transition-colors hover:border-petrol-300">
+      <p class="eyebrow">Notes validées</p>
+      <p class="mt-1 text-3xl font-medium text-sand-900 tabular">{{ notes()['count'] ?? 0 }}</p>
+      <p class="mt-1 text-sm text-sand-500">
+        Moyenne {{ notes()['average'] ?? 0 }} / 20
+      </p>
+    </a>
+
+    <a routerLink="/departement-pedagogique/reclamations"
+      class="rounded-[6px] border bg-white px-5 py-4 transition-colors"
+      [class]="reclamationsOuvertes() > 0 ? 'border-warn-500/40 hover:border-warn-500' : 'border-sand-200 hover:border-petrol-300'">
+      <p class="eyebrow">Réclamations en cours</p>
+      <p class="mt-1 text-3xl font-medium tabular"
+        [class]="reclamationsOuvertes() > 0 ? 'text-warn-700' : 'text-sand-900'">
+        {{ reclamationsOuvertes() }}
+      </p>
+      <p class="mt-1 text-sm text-sand-500">Contestations à instruire</p>
+    </a>
+
+    <a routerLink="/departement-pedagogique/risques"
+      class="rounded-[6px] border border-sand-200 bg-white px-5 py-4 transition-colors hover:border-petrol-300">
+      <p class="eyebrow">Stages en cours</p>
+      <p class="mt-1 text-3xl font-medium text-sand-900 tabular">{{ enCours() }}</p>
+      <p class="mt-1 text-sm text-sand-500">Suivi du risque disponible</p>
+    </a>
+  </section>
+
+  @if (notesManquantes() > 0) {
+    <p class="mb-6 rounded-[6px] border border-warn-500/25 bg-warn-50 px-4 py-3 text-sm text-warn-700">
+      <span class="font-medium">{{ notesManquantes() }} stage(s) terminé(s)</span>
+      sans évaluation validée. Relancez les encadrants concernés.
+    </p>
+  }
+
+  <section class="rounded-[6px] border border-sand-200 bg-white px-6 py-5">
+    <p class="eyebrow mb-3">Distribution des notes</p>
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div>
+        <p class="text-2xl font-medium text-sand-900 tabular">{{ notes()['min'] ?? 0 }}</p>
+        <p class="mt-0.5 text-xs text-sand-500">Minimum</p>
+      </div>
+      <div class="border-x border-sand-100">
+        <p class="text-2xl font-medium text-petrol-800 tabular">{{ notes()['average'] ?? 0 }}</p>
+        <p class="mt-0.5 text-xs text-sand-500">Moyenne</p>
+      </div>
+      <div>
+        <p class="text-2xl font-medium text-sand-900 tabular">{{ notes()['max'] ?? 0 }}</p>
+        <p class="mt-0.5 text-xs text-sand-500">Maximum</p>
+      </div>
+    </div>
+  </section>
+}

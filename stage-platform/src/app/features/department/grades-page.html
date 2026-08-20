@@ -1,0 +1,75 @@
+<header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">Département pédagogique</p>
+    <h1 class="mt-1 text-2xl font-medium text-sand-900">Notes et évaluations</h1>
+  </div>
+  <button type="button" [disabled]="export()" (click)="exporter()"
+    class="rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+    {{ export() ? 'Génération…' : 'Exporter en XLSX' }}
+  </button>
+</header>
+
+@if (erreur(); as message) {
+  <p class="mb-5 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">{{ message }}</p>
+}
+
+@if (stats()['count']) {
+  <div class="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-[6px] border border-sand-200 bg-sand-200 sm:grid-cols-4">
+    <div class="bg-white px-5 py-4">
+      <p class="eyebrow">Notes validées</p>
+      <p class="mt-1 text-2xl font-medium text-sand-900 tabular">{{ stats()['count'] }}</p>
+    </div>
+    <div class="bg-white px-5 py-4">
+      <p class="eyebrow">Moyenne</p>
+      <p class="mt-1 text-2xl font-medium text-petrol-800 tabular">{{ stats()['average'] }}</p>
+    </div>
+    <div class="bg-white px-5 py-4">
+      <p class="eyebrow">Minimum</p>
+      <p class="mt-1 text-2xl font-medium text-sand-900 tabular">{{ stats()['min'] }}</p>
+    </div>
+    <div class="bg-white px-5 py-4">
+      <p class="eyebrow">Maximum</p>
+      <p class="mt-1 text-2xl font-medium text-sand-900 tabular">{{ stats()['max'] }}</p>
+    </div>
+  </div>
+}
+
+<section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+  @if (chargement()) {
+    <gs-spinner />
+  } @else if (notes().length === 0) {
+    <gs-empty-state title="Aucune note définitive"
+      hint="Les notes apparaissent ici lorsque les encadrants valident leur grille d’évaluation." />
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-sand-200 text-left">
+            <th class="eyebrow px-6 py-2.5 font-medium">Étudiant</th>
+            <th class="eyebrow px-6 py-2.5 font-medium">Type</th>
+            <th class="eyebrow px-6 py-2.5 font-medium">Entreprise</th>
+            <th class="eyebrow px-6 py-2.5 font-medium">Encadrant</th>
+            <th class="eyebrow px-6 py-2.5 text-right font-medium">Note</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-sand-100">
+          @for (note of notes(); track note.id) {
+            <tr class="transition-colors hover:bg-sand-50">
+              <td class="px-6 py-3 font-medium text-sand-900">{{ note.studentName }}</td>
+              <td class="px-6 py-3 text-sand-500">{{ note.internshipType }}</td>
+              <td class="px-6 py-3 text-sand-600">{{ note.companyName ?? '—' }}</td>
+              <td class="px-6 py-3 text-sand-600">{{ note.supervisorName ?? '—' }}</td>
+              <td class="px-6 py-3 text-right">
+                <span class="font-medium tabular"
+                  [class]="(note.finalScore ?? 0) >= 10 ? 'text-ok-700' : 'text-bad-700'">
+                  {{ note.finalScore }}
+                </span>
+                <span class="text-sand-400"> / 20</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

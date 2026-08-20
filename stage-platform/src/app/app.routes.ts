@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 
 import { authGuard, roleGuard } from './core/guards/auth.guard';
 
-const placeholder = () => import('./shared/placeholder-page').then((m) => m.PlaceholderPage);
 
 /**
  * Routage de l'application.
@@ -44,48 +43,48 @@ export const routes: Routes = [
             loadComponent: () => import('./features/student/internship-request-page').then((m) => m.InternshipRequestPage) },
           { path: 'journal', title: 'Journal de stage',
             loadComponent: () => import('./features/student/journal-page').then((m) => m.JournalPage) },
-          { path: 'documents', title: 'Documents', data: { titre: 'Mes documents' }, loadComponent: placeholder },
-          { path: 'note', title: 'Ma note', data: { titre: 'Ma note de stage' }, loadComponent: placeholder },
-          { path: 'reclamations', title: 'Réclamations', data: { titre: 'Mes réclamations' }, loadComponent: placeholder },
+          { path: 'documents', title: 'Mes documents', loadComponent: () => import('./features/student/documents-page').then((m) => m.DocumentsPage) },
+          { path: 'note', title: 'Ma note', loadComponent: () => import('./features/student/grade-page').then((m) => m.GradePage) },
+          { path: 'reclamations', title: 'Mes réclamations', loadComponent: () => import('./features/student/claims-page').then((m) => m.ClaimsPage) },
         ],
       },
       {
         path: 'entreprise',
         canActivate: [roleGuard('ENTREPRISE')],
         children: [
-          { path: '', title: 'Entreprise', data: { titre: 'Tableau de bord entreprise' }, loadComponent: placeholder },
-          { path: 'demandes', title: 'Demandes reçues', data: { titre: 'Demandes reçues' }, loadComponent: placeholder },
-          { path: 'stagiaires', title: 'Mes stagiaires', data: { titre: 'Mes stagiaires' }, loadComponent: placeholder },
-          { path: 'encadrants', title: 'Encadrants', data: { titre: 'Mes encadrants' }, loadComponent: placeholder },
+          { path: '', title: 'Entreprise', loadComponent: () => import('./features/company/company-dashboard').then((m) => m.CompanyDashboard) },
+          { path: 'demandes', title: 'Demandes reçues', loadComponent: () => import('./features/company/company-requests-page').then((m) => m.CompanyRequestsPage) },
+          { path: 'stagiaires', title: 'Mes stagiaires', loadComponent: () => import('./features/company/company-interns-page').then((m) => m.CompanyInternsPage) },
+          { path: 'encadrants', title: 'Encadrants', loadComponent: () => import('./features/company/company-supervisors-page').then((m) => m.CompanySupervisorsPage) },
         ],
       },
       {
         path: 'encadrant',
         canActivate: [roleGuard('ENCADRANT')],
         children: [
-          { path: '', title: 'Encadrement', data: { titre: 'Tableau de bord encadrant' }, loadComponent: placeholder },
-          { path: 'journaux', title: 'Journaux', data: { titre: 'Journaux à valider' }, loadComponent: placeholder },
-          { path: 'evaluations', title: 'Évaluations', data: { titre: 'Grilles d’évaluation' }, loadComponent: placeholder },
+          { path: '', title: 'Encadrement', loadComponent: () => import('./features/supervisor/supervisor-dashboard').then((m) => m.SupervisorDashboard) },
+          { path: 'journaux', title: 'Journaux à valider', loadComponent: () => import('./features/supervisor/supervisor-journal-page').then((m) => m.SupervisorJournalPage) },
+          { path: 'evaluations', title: 'Grille d’évaluation', loadComponent: () => import('./features/supervisor/supervisor-evaluation-page').then((m) => m.SupervisorEvaluationPage) },
         ],
       },
       {
         path: 'departement-stages',
         canActivate: [roleGuard('CHEF_DEPARTEMENT_STAGE', 'ADMIN')],
         children: [
-          { path: '', title: 'Service des stages', data: { titre: 'Tableau de bord — service des stages' }, loadComponent: placeholder },
-          { path: 'demandes', title: 'Demandes', data: { titre: 'Demandes de stage' }, loadComponent: placeholder },
-          { path: 'documents', title: 'Documents', data: { titre: 'Documents à valider' }, loadComponent: placeholder },
-          { path: 'requetes', title: 'Conventions', data: { titre: 'Conventions et lettres d’affectation' }, loadComponent: placeholder },
+          { path: '', title: 'Service des stages', loadComponent: () => import('./features/department/stages-dashboard').then((m) => m.StagesDashboard) },
+          { path: 'demandes', title: 'Demandes de stage', loadComponent: () => import('./features/department/internship-review-page').then((m) => m.InternshipReviewPage) },
+          { path: 'documents', title: 'Documents à valider', loadComponent: () => import('./features/department/documents-review-page').then((m) => m.DocumentsReviewPage) },
+          { path: 'requetes', title: 'Conventions et lettres', loadComponent: () => import('./features/department/requests-page').then((m) => m.RequestsPage) },
         ],
       },
       {
         path: 'departement-pedagogique',
         canActivate: [roleGuard('CHEF_DEPARTEMENT_PEDAGOGIQUE', 'ADMIN')],
         children: [
-          { path: '', title: 'Département pédagogique', data: { titre: 'Tableau de bord — pédagogique' }, loadComponent: placeholder },
-          { path: 'notes', title: 'Notes', data: { titre: 'Notes et évaluations' }, loadComponent: placeholder },
-          { path: 'reclamations', title: 'Réclamations', data: { titre: 'Réclamations' }, loadComponent: placeholder },
-          { path: 'risques', title: 'Risques', data: { titre: 'Suivi du risque' }, loadComponent: placeholder },
+          { path: '', title: 'Département pédagogique', loadComponent: () => import('./features/department/pedagogy-dashboard').then((m) => m.PedagogyDashboard) },
+          { path: 'notes', title: 'Notes et évaluations', loadComponent: () => import('./features/department/grades-page').then((m) => m.GradesPage) },
+          { path: 'reclamations', title: 'Réclamations', loadComponent: () => import('./features/department/department-claims-page').then((m) => m.DepartmentClaimsPage) },
+          { path: 'risques', title: 'Suivi du risque', loadComponent: () => import('./features/department/risk-page').then((m) => m.RiskPage) },
         ],
       },
       {

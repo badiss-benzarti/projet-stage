@@ -1,0 +1,105 @@
+<header class="mb-6">
+  <p class="eyebrow">Espace étudiant</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Mes documents</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else if (!dossier()) {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state title="Aucun dossier de stage" hint="Déposez d’abord une demande de stage." />
+  </div>
+} @else {
+
+  <section class="mb-6 rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Déposer un document</p>
+    </div>
+
+    <div class="px-6 py-5">
+      <p class="mb-2 text-sm font-medium text-sand-700">Type de document</p>
+      <div class="mb-4 flex flex-wrap gap-2">
+        @for (type of typesDeposables; track type) {
+          <button type="button" (click)="choisirType(type)"
+            class="rounded-[5px] border px-3 py-1.5 text-sm transition-colors"
+            [class]="typeChoisi() === type
+              ? 'border-petrol-600 bg-petrol-50 font-medium text-petrol-800'
+              : 'border-sand-300 text-sand-600 hover:border-sand-400'">
+            {{ typeLabels[type] }}
+          </button>
+        }
+      </div>
+
+      <label class="flex cursor-pointer flex-col items-center justify-center rounded-[6px] border border-dashed border-sand-300 px-6 py-8 text-center transition-colors hover:border-petrol-400 hover:bg-petrol-50/40">
+        <span class="text-sm font-medium text-sand-700">
+          {{ envoi() ? 'Envoi en cours…' : 'Choisir un fichier' }}
+        </span>
+        <span class="mt-1 text-xs text-sand-500">PDF, PNG ou JPEG · 10 Mo maximum</span>
+        <input type="file" accept="application/pdf,image/png,image/jpeg" [disabled]="envoi()"
+          (change)="deposer($event)" class="sr-only" />
+      </label>
+
+      @if (erreur(); as message) {
+        <p class="mt-4 rounded-[5px] border border-bad-500/25 bg-bad-50 px-3 py-2 text-sm text-bad-700">
+          {{ message }}
+        </p>
+      }
+    </div>
+  </section>
+
+  <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Documents déposés</p>
+    </div>
+
+    @if (liste().length === 0) {
+      <gs-empty-state title="Aucun document"
+        hint="Convention, lettre d’affectation, rapport et attestation se déposent ici. Le service des stages les valide ou les refuse avec un motif." />
+    } @else {
+      <ul class="divide-y divide-sand-100">
+        @for (doc of liste(); track doc.id) {
+          <li class="px-6 py-4">
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span class="font-medium text-sand-900">{{ typeLabels[doc.type] }}</span>
+              <span class="truncate text-sm text-sand-500">{{ doc.originalName }}</span>
+              <span class="text-xs text-sand-400 tabular">{{ taille(doc.sizeBytes) }}</span>
+              @if (doc.generated) {
+                <span class="rounded-full border border-petrol-300/50 bg-petrol-50 px-2 py-0.5 text-[11px] text-petrol-700">
+                  généré par la plateforme
+                </span>
+              }
+              <span class="ml-auto rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                [class]="doc.status === 'APPROVED'
+                  ? 'border-ok-500/25 bg-ok-50 text-ok-700'
+                  : doc.status === 'REJECTED'
+                    ? 'border-bad-500/25 bg-bad-50 text-bad-700'
+                    : 'border-warn-500/25 bg-warn-50 text-warn-700'">
+                {{ statutMeta[doc.status].label }}
+              </span>
+            </div>
+
+            @if (doc.status === 'REJECTED' && doc.rejectionReason) {
+              <p class="mt-2 rounded-[5px] border border-bad-500/20 bg-bad-50 px-3 py-2 text-sm text-bad-700">
+                <span class="font-medium">Refusé</span> — {{ doc.rejectionReason }}.
+                Corrigez et redéposez le document.
+              </p>
+            }
+
+            <div class="mt-2 flex gap-3">
+              <button type="button" (click)="telecharger(doc)"
+                class="text-xs font-medium text-petrol-700 hover:underline">
+                Télécharger
+              </button>
+              @if (doc.status !== 'APPROVED') {
+                <button type="button" (click)="supprimer(doc)"
+                  class="text-xs text-sand-400 hover:text-bad-600">
+                  Supprimer
+                </button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

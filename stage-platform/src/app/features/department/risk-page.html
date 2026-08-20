@@ -1,0 +1,41 @@
+<header class="mb-6">
+  <p class="eyebrow">Département pédagogique</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Suivi du risque</h1>
+  <p class="mt-1 max-w-2xl text-sm text-sand-500">
+    Estimation produite par le modèle d’apprentissage à partir du journal de stage :
+    volume de tâches, refus, heures validées et régularité de la saisie.
+    Aucune donnée nominative n’est transmise au modèle.
+  </p>
+</header>
+
+@if (chargement()) {
+  <gs-spinner label="Interrogation du modèle…" />
+} @else if (attendus() === 0) {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state title="Aucun stage en cours"
+      hint="Le suivi du risque ne concerne que les stages en cours." />
+  </div>
+} @else {
+
+  @if (eleves() > 0) {
+    <p class="mb-5 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">
+      <span class="font-medium">{{ eleves() }} stagiaire{{ eleves() > 1 ? 's' : '' }}</span>
+      présente{{ eleves() > 1 ? 'nt' : '' }} un risque élevé. Un contact avec l’encadrant est recommandé.
+    </p>
+  }
+
+  <div class="grid gap-4 md:grid-cols-2">
+    @for (risque of triees(); track risque.internshipId) {
+      <div>
+        <p class="mb-1.5 text-sm font-medium text-sand-800">{{ risque.studentName }}</p>
+        <gs-risk-gauge [assessment]="risque" />
+      </div>
+    }
+  </div>
+
+  @if (triees().length < attendus()) {
+    <p class="mt-5 text-sm text-sand-500">
+      {{ attendus() - triees().length }} estimation(s) en cours de calcul…
+    </p>
+  }
+}

@@ -1,0 +1,144 @@
+<header class="mb-6">
+  <p class="eyebrow">Service des stages</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Demandes de stage</h1>
+</header>
+
+<div class="mb-6 flex flex-wrap gap-2">
+  @for (statut of filtres; track statut) {
+    <button type="button" (click)="filtrer(statut)"
+      class="rounded-full border px-3.5 py-1.5 text-sm transition-colors"
+      [class]="filtre() === statut
+        ? 'border-petrol-600 bg-petrol-50 font-medium text-petrol-800'
+        : 'border-sand-300 bg-white text-sand-600 hover:border-sand-400'">
+      {{ statut === null ? 'Tous' : meta[statut].label }}
+    </button>
+  }
+</div>
+
+@if (erreur(); as message) {
+  <p class="mb-5 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">{{ message }}</p>
+}
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+  <div class="grid gap-6" [class]="selection() ? 'lg:grid-cols-[1fr_400px]' : ''">
+
+    <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+      <gs-internship-table
+        [internships]="dossiers()"
+        actionLabel="Instruire"
+        emptyTitle="Aucune demande"
+        emptyHint="Aucun dossier ne correspond à ce filtre."
+        (select)="ouvrir($event)"
+      />
+    </section>
+
+    @if (selection(); as d) {
+      <aside class="rounded-[6px] border border-sand-200 bg-white lg:sticky lg:top-20 lg:self-start">
+        <div class="flex items-start justify-between gap-3 border-b border-sand-100 px-5 py-4">
+          <div class="min-w-0">
+            <p class="truncate font-medium text-sand-900">{{ d.studentName }}</p>
+            <p class="mt-0.5 truncate text-sm text-sand-500">{{ d.title }}</p>
+          </div>
+          <button type="button" (click)="fermer()" aria-label="Fermer"
+            class="shrink-0 text-sand-400 hover:text-sand-700">×</button>
+        </div>
+
+        <dl class="space-y-2.5 px-5 py-4 text-sm">
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">État</dt>
+            <dd><gs-status-badge [status]="d.status" /></dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Type</dt>
+            <dd class="text-sand-800">{{ d.type === 'PFE' ? 'PFE' : 'Stage d’été' }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Entreprise</dt>
+            <dd class="text-right text-sand-800">{{ d.companyName ?? '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Encadrant</dt>
+            <dd class="text-right text-sand-800">{{ d.supervisorName ?? '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Période</dt>
+            <dd class="text-right text-sand-800 tabular">{{ d.startDate }} → {{ d.endDate }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Année</dt>
+            <dd class="text-sand-800 tabular">{{ d.academicYear }}</dd>
+          </div>
+        </dl>
+
+        @if (d.description) {
+          <div class="border-t border-sand-100 px-5 py-4">
+            <p class="eyebrow mb-1.5">Sujet</p>
+            <p class="text-sm leading-relaxed text-sand-700">{{ d.description }}</p>
+          </div>
+        }
+
+        @if (d.rejectionReason) {
+          <div class="border-t border-sand-100 px-5 py-4">
+            <p class="rounded-[5px] border border-bad-500/20 bg-bad-50 px-3 py-2 text-sm text-bad-700">
+              <span class="font-medium">Motif</span> — {{ d.rejectionReason }}
+            </p>
+          </div>
+        }
+
+        <!-- Actions autorisees par le backend pour ce role et cet etat -->
+        @if (d.availableActions.length > 0) {
+          <div class="border-t border-sand-100 bg-sand-50/60 px-5 py-4">
+            <p class="eyebrow mb-3">Décision</p>
+
+            @if (actionEnAttente(); as action) {
+              <label for="motif" class="mb-1.5 block text-xs font-medium text-sand-700">
+                Motif — obligatoire pour « {{ action.label }} »
+              </label>
+              <textarea id="motif" rows="3" [value]="motif()"
+                (input)="majMotif($any($event.target).value)"
+                placeholder="Expliquez la décision à l’étudiant…"
+                class="w-full resize-y rounded-[5px] border border-sand-300 px-3 py-2 text-sm focus:border-petrol-500 focus:outline-none"></textarea>
+              <div class="mt-2 flex gap-2">
+                <button type="button" [disabled]="envoi()" (click)="confirmer()"
+                  class="rounded-[5px] bg-bad-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-bad-700 disabled:opacity-60">
+                  Confirmer
+                </button>
+                <button type="button" (click)="annulerAction()" class="text-sm text-sand-500 hover:text-sand-800">
+                  Annuler
+                </button>
+              </div>
+            } @else {
+              <div class="flex flex-wrap gap-2">
+                @for (action of d.availableActions; track action.target) {
+                  <button type="button" [disabled]="envoi()" (click)="preparer(action)"
+                    class="rounded-[5px] px-3.5 py-1.5 text-sm font-medium transition-colors disabled:opacity-60"
+                    [class]="action.requiresReason
+                      ? 'border border-sand-300 text-sand-700 hover:border-bad-500 hover:text-bad-700'
+                      : 'bg-petrol-700 text-white hover:bg-petrol-800'">
+                    {{ action.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (d.history.length > 0) {
+          <div class="border-t border-sand-100 px-5 py-4">
+            <p class="eyebrow mb-2">Historique</p>
+            <ol class="space-y-2">
+              @for (entree of d.history; track entree.at) {
+                <li class="text-xs">
+                  <span class="text-sand-800">{{ meta[entree.toStatus].label }}</span>
+                  <span class="text-sand-400"> · {{ entree.actorName }}</span>
+                </li>
+              }
+            </ol>
+          </div>
+        }
+      </aside>
+    }
+  </div>
+}

@@ -1,0 +1,60 @@
+<header class="mb-7">
+  <p class="eyebrow">Service des stages</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Tableau de bord</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+
+  <!-- Ce qui demande une action -->
+  <section class="mb-7 grid gap-4 sm:grid-cols-2">
+    <a routerLink="/departement-stages/demandes"
+      class="rounded-[6px] border bg-white px-5 py-4 transition-colors"
+      [class]="aTraiter() > 0 ? 'border-warn-500/40 hover:border-warn-500' : 'border-sand-200 hover:border-petrol-300'">
+      <p class="eyebrow">Demandes à instruire</p>
+      <p class="mt-1 text-3xl font-medium tabular"
+        [class]="aTraiter() > 0 ? 'text-warn-700' : 'text-sand-900'">{{ aTraiter() }}</p>
+      <p class="mt-1 text-sm text-sand-500">Soumises ou en cours d’examen</p>
+    </a>
+
+    <a routerLink="/departement-stages/documents"
+      class="rounded-[6px] border bg-white px-5 py-4 transition-colors"
+      [class]="documentsEnAttente() > 0 ? 'border-warn-500/40 hover:border-warn-500' : 'border-sand-200 hover:border-petrol-300'">
+      <p class="eyebrow">Documents à valider</p>
+      <p class="mt-1 text-3xl font-medium tabular"
+        [class]="documentsEnAttente() > 0 ? 'text-warn-700' : 'text-sand-900'">{{ documentsEnAttente() }}</p>
+      <p class="mt-1 text-sm text-sand-500">Conventions, lettres, rapports</p>
+    </a>
+  </section>
+
+  <!-- Repartition des dossiers -->
+  <section class="rounded-[6px] border border-sand-200 bg-white">
+    <div class="flex items-baseline justify-between border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Répartition des dossiers</p>
+      <span class="text-sm text-sand-500 tabular">{{ total() }} au total</span>
+    </div>
+
+    <ul class="divide-y divide-sand-100">
+      @for (statut of ordre; track statut) {
+        <li class="flex items-center gap-4 px-6 py-3">
+          <span class="w-48 shrink-0 text-sm text-sand-700">{{ meta[statut].label }}</span>
+          <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-sand-100">
+            <div class="h-full rounded-full bg-petrol-500"
+              [style.width.%]="total() > 0 ? ((stats()[statut] ?? 0) / total()) * 100 : 0"></div>
+          </div>
+          <span class="w-10 shrink-0 text-right text-sm font-medium text-sand-900 tabular">
+            {{ stats()[statut] ?? 0 }}
+          </span>
+        </li>
+      }
+    </ul>
+
+    @if ((stats()['REJECTED'] ?? 0) + (stats()['REFUSED'] ?? 0) > 0) {
+      <div class="border-t border-sand-100 px-6 py-3 text-sm text-sand-500">
+        Refus : {{ stats()['REJECTED'] ?? 0 }} par le service ·
+        {{ stats()['REFUSED'] ?? 0 }} par les entreprises
+      </div>
+    }
+  </section>
+}

@@ -90,3 +90,29 @@ export const STATUS_META: Readonly<
   IN_PROGRESS:     { label: 'En cours',               tone: 'info' },
   COMPLETED:       { label: 'Terminé',                tone: 'ok' },
 };
+
+// --- Demandes de convention et de lettre d'affectation ---
+
+export type RequestType = 'CONVENTION' | 'LETTRE_AFFECTATION';
+export type RequestStatus = 'PENDING' | 'ISSUED' | 'REJECTED';
+
+export interface DocumentRequest {
+  readonly id: number;
+  readonly internshipId: number;
+  readonly type: RequestType;
+  readonly status: RequestStatus;
+  readonly reason: string | null;
+  readonly processedBy: string | null;
+  readonly createdAt: string;
+}
+
+export const REQUEST_TYPE_LABELS: Readonly<Record<RequestType, string>> = {
+  CONVENTION: 'Convention de stage',
+  LETTRE_AFFECTATION: 'Lettre d’affectation',
+};
+
+export const REQUEST_STATUS_LABELS: Readonly<Record<RequestStatus, string>> = {
+  PENDING: 'En attente',
+  ISSUED: 'Éditée',
+  REJECTED: 'Refusée',
+};
