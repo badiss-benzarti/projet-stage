@@ -21,7 +21,10 @@ public final class InternshipDto {
                     message = "Annee universitaire attendue au format 2026-2027") String academicYear,
             Long companyId,
             @Size(max = 150) String companyName,
-            @FutureOrPresent(message = "La date de debut ne peut pas etre dans le passe") LocalDate startDate,
+            // Pas de contrainte de date future : une inscription tardive, sur un
+            // stage deja commence, est un cas reel. La coherence debut/fin est
+            // verifiee dans le service.
+            LocalDate startDate,
             LocalDate endDate
     ) {}
 

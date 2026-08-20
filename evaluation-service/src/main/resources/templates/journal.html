@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Journal de stage</title>
+    <style>
+        @page { size: A4; margin: 18mm 15mm; }
+        body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #1a2226; }
+
+        .bandeau { border-bottom: 2pt solid #12556b; padding-bottom: 6pt; margin-bottom: 14pt; }
+        .bandeau h1 { font-size: 17pt; margin: 0 0 3pt 0; color: #12556b; font-weight: normal; }
+        .bandeau .soustitre { font-size: 9pt; color: #5a6a74; }
+
+        table.infos { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+        table.infos td { padding: 3pt 0; font-size: 9.5pt; vertical-align: top; }
+        table.infos td.cle { color: #5a6a74; width: 28%; }
+
+        table.journal { width: 100%; border-collapse: collapse; }
+        table.journal th {
+            background: #12556b; color: #ffffff; font-size: 8.5pt; font-weight: bold;
+            text-align: left; padding: 5pt 4pt; letter-spacing: 0.4pt;
+        }
+        table.journal td { border-bottom: 0.5pt solid #d7dfe4; padding: 5pt 4pt; font-size: 9pt; }
+        table.journal td.num { text-align: right; }
+        .statut { font-size: 7.5pt; padding: 1pt 4pt; }
+        .v { color: #2e6b3a; }
+        .r { color: #98322b; }
+        .p { color: #855610; }
+
+        .synthese { margin-top: 14pt; border-top: 1pt solid #12556b; padding-top: 8pt; }
+        .synthese td { padding: 2pt 10pt 2pt 0; font-size: 9.5pt; }
+        .synthese .valeur { font-weight: bold; }
+
+        .pied { margin-top: 20pt; font-size: 8pt; color: #8b979e; border-top: 0.5pt solid #d7dfe4; padding-top: 5pt; }
+    </style>
+</head>
+<body>
+
+<div class="bandeau">
+    <h1>Journal de stage</h1>
+    <div class="soustitre" th:text="${titre}">Titre du stage</div>
+</div>
+
+<table class="infos">
+    <tr><td class="cle">Etudiant</td><td th:text="${etudiant}">Nom</td></tr>
+    <tr><td class="cle">Type de stage</td><td th:text="${type}">PFE</td></tr>
+    <tr><td class="cle">Entreprise d'accueil</td><td th:text="${entreprise}">Entreprise</td></tr>
+    <tr><td class="cle">Encadrant</td><td th:text="${encadrant}">Encadrant</td></tr>
+    <tr><td class="cle">Periode</td><td th:text="${periode}">Periode</td></tr>
+</table>
+
+<table class="journal">
+    <thead>
+    <tr>
+        <th style="width:15%">DATE</th>
+        <th style="width:33%">TACHE</th>
+        <th style="width:32%">DESCRIPTION</th>
+        <th style="width:9%">HEURES</th>
+        <th style="width:11%">ETAT</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="t : ${taches}">
+        <td th:text="${t.date}">01/01/2027</td>
+        <td th:text="${t.titre}">Tache</td>
+        <td th:text="${t.description}">Description</td>
+        <td class="num" th:text="${t.heures}">7</td>
+        <td>
+            <span class="statut"
+                  th:classappend="${t.statut == 'VALIDATED'} ? 'v' : (${t.statut == 'REJECTED'} ? 'r' : 'p')"
+                  th:text="${t.libelle}">Validee</span>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(taches)}">
+        <td colspan="5" style="text-align:center; color:#8b979e; padding:14pt">
+            Aucune tache saisie a ce jour.
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="synthese">
+    <table>
+        <tr>
+            <td>Taches saisies</td><td class="valeur" th:text="${total}">0</td>
+            <td>Validees</td><td class="valeur" th:text="${validees}">0</td>
+            <td>En attente</td><td class="valeur" th:text="${attente}">0</td>
+            <td>Refusees</td><td class="valeur" th:text="${refusees}">0</td>
+        </tr>
+        <tr>
+            <td>Heures validees</td><td class="valeur" th:text="${heures}">0</td>
+        </tr>
+    </table>
+</div>
+
+<div class="pied">
+    <span th:text="${genereLe}">Genere le</span> &#183; Plateforme de gestion des stages
+</div>
+
+</body>
+</html>
