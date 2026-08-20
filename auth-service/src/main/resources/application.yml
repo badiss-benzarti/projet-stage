@@ -1,0 +1,20 @@
+# =====================================================================
+#  Configuration de BOOTSTRAP.
+#  Le port, la datasource et le secret JWT viennent du config-server
+#  (config-repo/auth-service.yml + config-repo/application.yml).
+# =====================================================================
+
+spring:
+  application:
+    # Doit correspondre EXACTEMENT au nom du fichier dans config-repo
+    name: auth-service
+
+  config:
+    import: optional:configserver:http://${CONFIG_HOST:localhost}:8888
+
+  cloud:
+    config:
+      retry:
+        max-attempts: 6
+        initial-interval: 2000
+        max-interval: 10000
