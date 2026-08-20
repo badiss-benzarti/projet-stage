@@ -1,0 +1,121 @@
+<div class="flex min-h-screen bg-sand-100">
+
+  <!-- Voile sur mobile quand la barre laterale est ouverte -->
+  @if (barreOuverte()) {
+    <button
+      type="button"
+      (click)="fermerBarre()"
+      aria-label="Fermer la navigation"
+      class="fixed inset-0 z-30 bg-sand-950/40 lg:hidden"
+    ></button>
+  }
+
+  <!-- Barre laterale -->
+  <aside
+    class="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-sand-200 bg-white transition-transform lg:static lg:translate-x-0"
+    [class]="barreOuverte() ? 'translate-x-0' : '-translate-x-full'"
+  >
+    <div class="flex h-14 items-center border-b border-sand-200 px-5">
+      <div class="flex size-7 items-center justify-center rounded bg-petrol-700 text-[11px] font-semibold text-white">
+        GS
+      </div>
+      <span class="ml-2.5 text-sm font-medium tracking-tight text-sand-900">Gestion des stages</span>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto px-3 py-5">
+      @for (section of sections(); track section.title) {
+        <div class="mb-6">
+          <p class="eyebrow mb-2 px-2">{{ section.title }}</p>
+          <ul class="space-y-0.5">
+            @for (item of section.items; track item.route) {
+              <li>
+                <a
+                  [routerLink]="item.route"
+                  routerLinkActive="bg-petrol-50 text-petrol-800 font-medium"
+                  [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                  (click)="fermerBarre()"
+                  class="block rounded-[5px] px-2.5 py-1.5 text-sm text-sand-600 transition-colors hover:bg-sand-100 hover:text-sand-900"
+                >
+                  {{ item.label }}
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </nav>
+
+    <div class="border-t border-sand-200 px-3 py-3">
+      <a
+        routerLink="/notifications"
+        routerLinkActive="bg-petrol-50 text-petrol-800"
+        (click)="fermerBarre()"
+        class="flex items-center justify-between rounded-[5px] px-2.5 py-1.5 text-sm text-sand-600 transition-colors hover:bg-sand-100"
+      >
+        Notifications
+        @if (notifications.unread() > 0) {
+          <span class="rounded-full bg-petrol-700 px-1.5 py-0.5 text-[11px] font-medium text-white tabular">
+            {{ notifications.unread() }}
+          </span>
+        }
+      </a>
+    </div>
+  </aside>
+
+  <!-- Contenu -->
+  <div class="flex min-w-0 flex-1 flex-col">
+
+    <header class="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-sand-200 bg-sand-50/90 px-5 backdrop-blur">
+      <button
+        type="button"
+        (click)="basculerBarre()"
+        aria-label="Ouvrir la navigation"
+        class="-ml-1 rounded p-1.5 text-sand-600 hover:bg-sand-200 lg:hidden"
+      >
+        <span class="block h-px w-4 bg-current shadow-[0_4px_0_currentColor,0_-4px_0_currentColor]"></span>
+      </button>
+
+      <div class="ml-auto flex items-center gap-3">
+        @if (user(); as u) {
+          <div class="relative">
+            <button
+              type="button"
+              (click)="basculerMenu()"
+              class="flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 transition-colors hover:bg-sand-200"
+            >
+              <span class="flex size-7 items-center justify-center rounded-full bg-petrol-100 text-[11px] font-semibold text-petrol-800">
+                {{ initials() }}
+              </span>
+              <span class="hidden text-left sm:block">
+                <span class="block text-xs leading-tight font-medium text-sand-800">{{ fullName() }}</span>
+                <span class="block text-[11px] leading-tight text-sand-500">{{ roleLabel() }}</span>
+              </span>
+            </button>
+
+            @if (menuOuvert()) {
+              <div class="absolute right-0 z-30 mt-2 w-56 rounded-[6px] border border-sand-200 bg-white py-1 shadow-lg">
+                <div class="border-b border-sand-100 px-3 py-2">
+                  <p class="truncate text-sm font-medium text-sand-800">{{ fullName() }}</p>
+                  <p class="truncate text-xs text-sand-500">{{ u.email }}</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="deconnexion()"
+                  class="w-full px-3 py-2 text-left text-sm text-sand-700 hover:bg-sand-100"
+                >
+                  Se déconnecter
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </header>
+
+    <main class="flex-1 px-5 py-7 lg:px-8">
+      <div class="mx-auto max-w-6xl">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

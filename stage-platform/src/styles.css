@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* =====================================================================
+   Systeme de design de la plateforme.
+
+   Parti pris : un outil administratif serieux, pas un tableau de bord
+   de demonstration. Neutres legerement chauds pour eviter le gris bleute
+   des gabarits ; un seul accent, un petrole profond, utilise avec
+   parcimonie ; la couleur ne sert qu'a porter une information d'etat.
+   ===================================================================== */
+
+@theme {
+  /* --- Neutres, tres legerement chauds --- */
+  --color-sand-50:  #faf9f7;
+  --color-sand-100: #f3f1ee;
+  --color-sand-200: #e7e4df;
+  --color-sand-300: #d4d0c9;
+  --color-sand-400: #a8a39a;
+  --color-sand-500: #7c766c;
+  --color-sand-600: #5b564e;
+  --color-sand-700: #423e38;
+  --color-sand-800: #2a2723;
+  --color-sand-900: #1a1815;
+  --color-sand-950: #0f0e0c;
+
+  /* --- Accent : petrole profond --- */
+  --color-petrol-50:  #eef6f8;
+  --color-petrol-100: #d6e9ee;
+  --color-petrol-200: #aed3dd;
+  --color-petrol-300: #7ab4c4;
+  --color-petrol-400: #4a8fa4;
+  --color-petrol-500: #2d7188;
+  --color-petrol-600: #1f5b70;
+  --color-petrol-700: #1a4a5c;
+  --color-petrol-800: #173c4b;
+  --color-petrol-900: #14323e;
+
+  /* --- Couleurs d'etat : jamais decoratives --- */
+  --color-ok-50:   #eef6ef;
+  --color-ok-500:  #3f7a4a;
+  --color-ok-700:  #2c5c36;
+  --color-warn-50: #fbf4e6;
+  --color-warn-500:#a97514;
+  --color-warn-700:#7d550c;
+  --color-bad-50:  #fbefee;
+  --color-bad-500: #a83f36;
+  --color-bad-700: #7f2d26;
+
+  --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+
+  --radius-card: 6px;
+}
+
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  @apply bg-sand-100 text-sand-900 font-sans antialiased;
+}
+
+/* Les chiffres alignes en colonne dans les tableaux. */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Etiquette de section : petites capitales espacees, jamais en gras lourd. */
+.eyebrow {
+  @apply text-[11px] uppercase tracking-[0.14em] text-sand-500 font-medium;
+}
+
+/* Focus visible et sobre, sur toute la plateforme. */
+*:focus-visible {
+  @apply outline-2 outline-offset-2 outline-petrol-500;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  @apply bg-sand-300 rounded-full border-2 border-solid border-sand-100;
+}
+::-webkit-scrollbar-thumb:hover { @apply bg-sand-400; }

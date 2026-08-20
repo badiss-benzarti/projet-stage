@@ -1,0 +1,163 @@
+<header class="mb-7">
+  <p class="eyebrow">Espace étudiant</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Bonjour {{ prenom() }}</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner label="Chargement de votre dossier…" />
+} @else if (dossier(); as d) {
+
+  <!-- Carte du dossier -->
+  <section class="rounded-[6px] border border-sand-200 bg-white">
+    <div class="flex flex-wrap items-start justify-between gap-4 border-b border-sand-100 px-6 py-5">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2.5">
+          <h2 class="truncate text-lg font-medium text-sand-900">{{ d.title }}</h2>
+          <gs-status-badge [status]="d.status" />
+        </div>
+        <p class="mt-1 text-sm text-sand-500">
+          {{ d.type === 'PFE' ? 'Projet de fin d’études' : 'Stage d’été' }}
+          · {{ d.academicYear }}
+          @if (d.companyName) { · {{ d.companyName }} }
+        </p>
+      </div>
+      <a
+        routerLink="/etudiant/demande"
+        class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700"
+      >
+        Voir le détail
+      </a>
+    </div>
+
+    <!-- Frise du workflow -->
+    <div class="overflow-x-auto px-6 py-6">
+      @if (estRefuse()) {
+        <div class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3">
+          <p class="text-sm font-medium text-bad-700">{{ meta[d.status].label }}</p>
+          @if (d.rejectionReason) {
+            <p class="mt-1 text-sm text-bad-700/80">Motif : {{ d.rejectionReason }}</p>
+          }
+        </div>
+      } @else {
+        <ol class="flex min-w-[640px] items-start">
+          @for (etape of parcours; track etape; let i = $index; let last = $last) {
+            <li class="flex flex-1 flex-col items-center" [class.flex-none]="last">
+              <div class="flex w-full items-center">
+                <span
+                  class="flex size-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-medium tabular"
+                  [class]="
+                    i < etapeCourante()
+                      ? 'border-petrol-600 bg-petrol-600 text-white'
+                      : i === etapeCourante()
+                        ? 'border-petrol-600 bg-white text-petrol-700 ring-4 ring-petrol-100'
+                        : 'border-sand-300 bg-white text-sand-400'
+                  "
+                >
+                  {{ i + 1 }}
+                </span>
+                @if (!last) {
+                  <span
+                    class="h-px flex-1"
+                    [class]="i < etapeCourante() ? 'bg-petrol-500' : 'bg-sand-200'"
+                  ></span>
+                }
+              </div>
+              <span
+                class="mt-2 max-w-[84px] text-center text-[11px] leading-tight"
+                [class]="i <= etapeCourante() ? 'text-sand-700' : 'text-sand-400'"
+              >
+                {{ meta[etape].label }}
+              </span>
+            </li>
+          }
+        </ol>
+      }
+    </div>
+
+    <!-- Actions possibles, calculees par le backend -->
+    @if (d.availableActions.length > 0) {
+      <div class="border-t border-sand-100 bg-sand-50/60 px-6 py-4">
+        <p class="eyebrow mb-3">Actions disponibles</p>
+
+        @if (erreur(); as message) {
+          <p class="mb-3 rounded-[5px] border border-bad-500/25 bg-bad-50 px-3 py-2 text-sm text-bad-700">
+            {{ message }}
+          </p>
+        }
+
+        <div class="flex flex-wrap items-center gap-2">
+          @for (action of d.availableActions; track action.target) {
+            <button
+              type="button"
+              [disabled]="actionEnCours()"
+              (click)="declencher(action)"
+              class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60"
+            >
+              {{ action.label }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Raccourcis -->
+  <section class="mt-6 grid gap-4 sm:grid-cols-3">
+    @for (lien of [
+      { titre: 'Journal de stage', texte: 'Saisir vos tâches quotidiennes', route: '/etudiant/journal' },
+      { titre: 'Documents', texte: 'Convention, lettre, rapport', route: '/etudiant/documents' },
+      { titre: 'Ma note', texte: 'Évaluation et réclamation', route: '/etudiant/note' }
+    ]; track lien.route) {
+      <a
+        [routerLink]="lien.route"
+        class="rounded-[6px] border border-sand-200 bg-white px-5 py-4 transition-colors hover:border-petrol-300"
+      >
+        <p class="text-sm font-medium text-sand-800">{{ lien.titre }}</p>
+        <p class="mt-0.5 text-sm text-sand-500">{{ lien.texte }}</p>
+      </a>
+    }
+  </section>
+
+  <!-- Historique -->
+  @if (d.history.length > 0) {
+    <section class="mt-6 rounded-[6px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Historique du dossier</p>
+      </div>
+      <ol class="divide-y divide-sand-100">
+        @for (entree of d.history; track entree.at) {
+          <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-6 py-3">
+            <gs-status-badge [status]="entree.toStatus" />
+            <span class="text-sm text-sand-600">{{ entree.actorName }}</span>
+            <span class="text-xs text-sand-400 tabular">{{ entree.at | slice: 0 : 10 }}</span>
+            @if (entree.comment) {
+              <span class="w-full text-sm text-sand-500 italic">« {{ entree.comment }} »</span>
+            }
+          </li>
+        }
+      </ol>
+    </section>
+  }
+
+} @else {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state
+      title="Aucun dossier de stage"
+      hint="Déposez une demande pour lancer la procédure. Vous pourrez la modifier tant qu’elle est à l’état de brouillon."
+      icon="+"
+    >
+      <a
+        routerLink="/etudiant/demande"
+        class="mt-4 rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800"
+      >
+        Déposer une demande
+      </a>
+    </gs-empty-state>
+  </div>
+
+  @if (erreur(); as message) {
+    <p class="mt-4 rounded-[6px] border border-warn-500/25 bg-warn-50 px-4 py-3 text-sm text-warn-700">
+      {{ message }}
+    </p>
+  }
+}

@@ -1,0 +1,121 @@
+<div class="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_520px]">
+
+  <!-- Panneau gauche : le workflow du dossier de stage, sujet du projet -->
+  <aside class="relative hidden overflow-hidden bg-petrol-800 p-12 text-petrol-100 lg:flex lg:flex-col lg:justify-between">
+    <div>
+      <div class="text-[11px] uppercase tracking-[0.22em] text-petrol-300">ESPRIT</div>
+      <h1 class="mt-3 max-w-sm text-3xl leading-tight font-normal text-white">
+        Plateforme de gestion des stages
+      </h1>
+      <p class="mt-3 max-w-sm text-sm leading-relaxed text-petrol-200">
+        Dépôt des demandes, suivi du journal, évaluation en ligne et réclamations —
+        pour les stages PFE et les stages d’été.
+      </p>
+    </div>
+
+    <ol class="relative space-y-0 border-l border-petrol-600 pl-6">
+      @for (etape of etapes; track etape; let i = $index) {
+        <li class="relative py-2.5">
+          <span
+            class="absolute top-4 -left-[26px] size-2 rounded-full ring-4 ring-petrol-800"
+            [class]="i < 4 ? 'bg-petrol-300' : 'bg-petrol-600'"
+          ></span>
+          <span class="text-sm" [class]="i < 4 ? 'text-petrol-100' : 'text-petrol-400'">
+            {{ etape }}
+          </span>
+        </li>
+      }
+    </ol>
+
+    <p class="text-xs text-petrol-400">
+      Projet Intégré · Spring Boot · Angular · Docker · Apprentissage automatique
+    </p>
+  </aside>
+
+  <!-- Formulaire -->
+  <main class="flex items-center justify-center bg-sand-50 px-6 py-12">
+    <div class="w-full max-w-sm">
+
+      <div class="lg:hidden">
+        <div class="eyebrow">ESPRIT</div>
+        <h1 class="mt-1 mb-8 text-2xl text-sand-900">Gestion des stages</h1>
+      </div>
+
+      <h2 class="text-xl font-medium text-sand-900">Connexion</h2>
+      <p class="mt-1 mb-8 text-sm text-sand-500">Accédez à votre espace.</p>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" class="space-y-5" novalidate>
+
+        <div>
+          <label for="email" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Adresse email
+          </label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="username"
+            placeholder="prenom.nom@esprit.tn"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm text-sand-900 placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none"
+          />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="mt-1.5 text-xs text-bad-500">Renseignez une adresse email valide.</p>
+          }
+        </div>
+
+        <div>
+          <label for="password" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Mot de passe
+          </label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm text-sand-900 placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none"
+          />
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <p class="mt-1.5 text-xs text-bad-500">Le mot de passe est obligatoire.</p>
+          }
+        </div>
+
+        @if (erreur(); as message) {
+          <div class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-3 py-2.5 text-sm text-bad-700">
+            {{ message }}
+          </div>
+        }
+
+        <button
+          type="submit"
+          [disabled]="enCours()"
+          class="flex w-full items-center justify-center gap-2 rounded-[6px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          @if (enCours()) {
+            <span class="size-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"></span>
+            Connexion…
+          } @else {
+            Se connecter
+          }
+        </button>
+      </form>
+
+      <!-- Comptes de demonstration : retires avant mise en production -->
+      <div class="mt-10 border-t border-sand-200 pt-6">
+        <p class="eyebrow mb-3">Comptes de démonstration</p>
+        <div class="flex flex-wrap gap-1.5">
+          @for (compte of comptes; track compte.email) {
+            <button
+              type="button"
+              (click)="remplir(compte)"
+              class="rounded-full border border-sand-300 bg-white px-3 py-1 text-xs text-sand-600 transition-colors hover:border-petrol-400 hover:text-petrol-700"
+            >
+              {{ compte.libelle }}
+            </button>
+          }
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
