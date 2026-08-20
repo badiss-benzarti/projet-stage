@@ -1,0 +1,108 @@
+# =====================================================================
+#  Plateforme de gestion des stages
+#
+#  Etat au 20/08 : infrastructure seule (MySQL + RabbitMQ).
+#  Les microservices seront ajoutes au fur et a mesure ; SonarQube est
+#  isole derriere le profil "quality" pour ne pas peser sur les 16 Go.
+#
+#      docker compose up -d                     infrastructure
+#      docker compose --profile quality up -d   + SonarQube
+#      docker compose down                      arret
+#      docker compose down -v                   arret + purge des donnees
+# =====================================================================
+
+services:
+
+  # ------------------------------------------------------------------
+  #  MySQL : un seul conteneur, 6 schemas (un par microservice)
+  # ------------------------------------------------------------------
+  mysql:
+    image: mysql:8.4
+    container_name: gs-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-root}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p${DB_PASS:-root} --silent || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    networks: [gs-net]
+
+  # ------------------------------------------------------------------
+  #  RabbitMQ : bus d'evenements du workflow de stage
+  #  Console d'administration : http://localhost:15672
+  # ------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: gs-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks: [gs-net]
+
+  # ------------------------------------------------------------------
+  #  SonarQube : profil "quality" uniquement (2,7 Go avec sa base)
+  #  Ne doit PAS tourner pendant la demonstration.
+  # ------------------------------------------------------------------
+  sonar-postgres:
+    image: postgres:16-alpine
+    container_name: gs-sonar-db
+    profiles: ["quality"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonar-db:/var/lib/postgresql/data
+    networks: [gs-net]
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: gs-sonarqube
+    profiles: ["quality"]
+    restart: unless-stopped
+    depends_on:
+      - sonar-postgres
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-postgres:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar-data:/opt/sonarqube/data
+      - sonar-extensions:/opt/sonarqube/extensions
+      - sonar-logs:/opt/sonarqube/logs
+    networks: [gs-net]
+
+volumes:
+  mysql-data:
+  rabbitmq-data:
+  sonar-db:
+  sonar-data:
+  sonar-extensions:
+  sonar-logs:
+
+networks:
+  gs-net:
+    driver: bridge
