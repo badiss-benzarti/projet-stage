@@ -1,0 +1,61 @@
+<header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">Activité</p>
+    <h1 class="mt-1 text-2xl font-medium text-sand-900">Notifications</h1>
+  </div>
+  @if (service.unread() > 0) {
+    <button
+      type="button"
+      (click)="toutMarquerLu()"
+      class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700"
+    >
+      Tout marquer comme lu
+    </button>
+  }
+</header>
+
+<section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+  @if (chargement()) {
+    <gs-spinner />
+  } @else if (items().length === 0) {
+    <gs-empty-state
+      title="Aucune notification"
+      hint="Les évènements du workflow — approbation, acceptation, clôture — apparaîtront ici."
+    />
+  } @else {
+    <ul class="divide-y divide-sand-100">
+      @for (n of items(); track n.id) {
+        <li
+          class="flex gap-3 px-5 py-4 transition-colors"
+          [class]="n.read ? 'bg-white' : 'bg-petrol-50/40'"
+        >
+          <span
+            class="mt-1.5 size-1.5 shrink-0 rounded-full"
+            [class]="n.read ? 'bg-sand-300' : 'bg-petrol-600'"
+          ></span>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-baseline gap-x-2">
+              <p class="text-sm font-medium text-sand-900">{{ n.title }}</p>
+              <span class="font-mono text-[11px] text-sand-400">{{ n.eventType }}</span>
+            </div>
+            <p class="mt-0.5 text-sm text-sand-600">{{ n.message }}</p>
+            <p class="mt-1 text-xs text-sand-400 tabular">
+              {{ n.createdAt | date: 'dd/MM/yyyy à HH:mm' }}
+            </p>
+          </div>
+
+          @if (!n.read) {
+            <button
+              type="button"
+              (click)="marquerLue(n)"
+              class="shrink-0 self-start text-xs text-petrol-700 hover:underline"
+            >
+              Marquer lue
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
