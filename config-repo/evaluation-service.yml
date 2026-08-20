@@ -19,5 +19,8 @@ app:
       punctuality: 15
     scale: 20          # chaque critere note sur 20
     rounding: 0.25     # arrondi de la note finale
+    # Volume horaire quotidien attendu, moyenne lissee sur la semaine.
+    # Sert a calculer le retard sur les heures pour la prediction de risque.
+    expected-hours-per-day: 5.0
   ml:
     url: http://${ML_HOST:localhost}:8087
