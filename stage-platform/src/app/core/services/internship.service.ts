@@ -8,6 +8,9 @@ import {
   InternshipStatus,
   Page,
   TransitionRequest,
+  RequestStatus,
+  RequestType,
+  DocumentRequest,
 } from '../models/internship.models';
 
 /** Module 1 : demandes de stage et workflow de validation. */
@@ -63,6 +66,32 @@ export class InternshipService {
    */
   transition(id: number, requete: TransitionRequest): Observable<Internship> {
     return this.http.post<Internship>(`${this.base}/${id}/transition`, requete);
+  }
+  // ---- Demandes de convention et de lettre d'affectation ----
+
+  pendingRequests(): Observable<Page<DocumentRequest>> {
+    return this.http.get<Page<DocumentRequest>>(`${this.base}/requests/pending`, {
+      params: new HttpParams().set('size', 50),
+    });
+  }
+
+  requestsOf(internshipId: number): Observable<readonly DocumentRequest[]> {
+    return this.http.get<readonly DocumentRequest[]>(`${this.base}/${internshipId}/requests`);
+  }
+
+  askDocument(internshipId: number, type: RequestType): Observable<DocumentRequest> {
+    return this.http.post<DocumentRequest>(`${this.base}/${internshipId}/requests`, { type });
+  }
+
+  decideRequest(
+    requestId: number,
+    status: RequestStatus,
+    reason?: string,
+  ): Observable<DocumentRequest> {
+    return this.http.patch<DocumentRequest>(`${this.base}/requests/${requestId}`, {
+      status,
+      reason,
+    });
   }
 
   statistics(): Observable<Record<InternshipStatus, number>> {

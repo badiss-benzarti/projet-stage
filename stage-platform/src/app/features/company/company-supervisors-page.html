@@ -1,0 +1,107 @@
+<header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">Espace entreprise</p>
+    <h1 class="mt-1 text-2xl font-medium text-sand-900">Encadrants</h1>
+    <p class="mt-1 text-sm text-sand-500">
+      Ils valident les journaux de stage et remplissent la grille d’évaluation.
+    </p>
+  </div>
+  <button type="button" (click)="basculer()"
+    class="rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800">
+    {{ formulaireOuvert() ? 'Annuler' : 'Déclarer un encadrant' }}
+  </button>
+</header>
+
+@if (erreur(); as message) {
+  <p class="mb-5 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">{{ message }}</p>
+}
+@if (succes(); as message) {
+  <p class="mb-5 rounded-[6px] border border-ok-500/25 bg-ok-50 px-4 py-3 text-sm text-ok-700">{{ message }}</p>
+}
+
+@if (formulaireOuvert()) {
+  <form [formGroup]="form" (ngSubmit)="ajouter()" novalidate
+    class="mb-6 rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Nouvel encadrant</p>
+      <p class="mt-1 text-xs text-sand-500">
+        Un compte lui est créé : il pourra se connecter avec l’email et le mot de passe saisis ici.
+      </p>
+    </div>
+
+    <div class="grid gap-4 px-6 py-5 sm:grid-cols-2">
+      <div>
+        <label for="firstName" class="mb-1.5 block text-sm font-medium text-sand-700">Prénom</label>
+        <input id="firstName" formControlName="firstName"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="lastName" class="mb-1.5 block text-sm font-medium text-sand-700">Nom</label>
+        <input id="lastName" formControlName="lastName"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="email" class="mb-1.5 block text-sm font-medium text-sand-700">Email professionnel</label>
+        <input id="email" type="email" formControlName="email"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="password" class="mb-1.5 block text-sm font-medium text-sand-700">
+          Mot de passe initial <span class="font-normal text-sand-400">— 8 caractères minimum</span>
+        </label>
+        <input id="password" type="text" formControlName="password"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="phone" class="mb-1.5 block text-sm font-medium text-sand-700">
+          Téléphone <span class="font-normal text-sand-400">— facultatif</span>
+        </label>
+        <input id="phone" formControlName="phone"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="position" class="mb-1.5 block text-sm font-medium text-sand-700">
+          Fonction <span class="font-normal text-sand-400">— facultatif</span>
+        </label>
+        <input id="position" formControlName="position" placeholder="Ingénieur DevOps"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+      </div>
+
+      <div class="sm:col-span-2">
+        <button type="submit" [disabled]="envoi()"
+          class="rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+          {{ envoi() ? 'Création…' : 'Créer le compte encadrant' }}
+        </button>
+      </div>
+    </div>
+  </form>
+}
+
+<section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+  @if (chargement()) {
+    <gs-spinner />
+  } @else if (encadrants().length === 0) {
+    <gs-empty-state title="Aucun encadrant déclaré"
+      hint="Vous devez déclarer au moins un encadrant avant de pouvoir accepter un stagiaire." />
+  } @else {
+    <ul class="divide-y divide-sand-100">
+      @for (encadrant of encadrants(); track encadrant.id) {
+        <li class="flex flex-wrap items-center gap-x-3 gap-y-1 px-6 py-4">
+          <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-petrol-100 text-[11px] font-semibold text-petrol-800">
+            {{ encadrant.firstName.charAt(0) }}{{ encadrant.lastName.charAt(0) }}
+          </span>
+          <div class="min-w-0">
+            <p class="font-medium text-sand-900">{{ encadrant.firstName }} {{ encadrant.lastName }}</p>
+            <p class="text-sm text-sand-500">
+              {{ encadrant.email }}@if (encadrant.position) { · {{ encadrant.position }} }
+            </p>
+          </div>
+          <button type="button" (click)="retirer(encadrant)"
+            class="ml-auto text-xs text-sand-400 hover:text-bad-600">
+            Retirer
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -1,0 +1,54 @@
+<header class="mb-7">
+  <p class="eyebrow">Espace entreprise</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">
+    {{ entreprise()?.name ?? 'Tableau de bord' }}
+  </h1>
+  @if (entreprise(); as c) {
+    <p class="mt-1 text-sm text-sand-500">{{ c.address }} · {{ c.email }}</p>
+  }
+</header>
+
+@if (erreur(); as message) {
+  <p class="mb-5 rounded-[6px] border border-warn-500/25 bg-warn-50 px-4 py-3 text-sm text-warn-700">
+    {{ message }}
+  </p>
+}
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+  <section class="mb-7 grid gap-4 sm:grid-cols-3">
+    <a routerLink="/entreprise/demandes"
+      class="rounded-[6px] border bg-white px-5 py-4 transition-colors"
+      [class]="enAttente() > 0 ? 'border-warn-500/40 hover:border-warn-500' : 'border-sand-200 hover:border-petrol-300'">
+      <p class="eyebrow">Demandes en attente</p>
+      <p class="mt-1 text-3xl font-medium tabular"
+        [class]="enAttente() > 0 ? 'text-warn-700' : 'text-sand-900'">{{ enAttente() }}</p>
+      <p class="mt-1 text-sm text-sand-500">Candidatures à traiter</p>
+    </a>
+
+    <a routerLink="/entreprise/stagiaires"
+      class="rounded-[6px] border border-sand-200 bg-white px-5 py-4 transition-colors hover:border-petrol-300">
+      <p class="eyebrow">Stagiaires en cours</p>
+      <p class="mt-1 text-3xl font-medium text-sand-900 tabular">{{ enCours() }}</p>
+      <p class="mt-1 text-sm text-sand-500">Stages actifs</p>
+    </a>
+
+    <a routerLink="/entreprise/encadrants"
+      class="rounded-[6px] border border-sand-200 bg-white px-5 py-4 transition-colors hover:border-petrol-300">
+      <p class="eyebrow">Encadrants déclarés</p>
+      <p class="mt-1 text-3xl font-medium text-sand-900 tabular">
+        {{ entreprise()?.supervisorCount ?? 0 }}
+      </p>
+      <p class="mt-1 text-sm text-sand-500">Valident les journaux</p>
+    </a>
+  </section>
+
+  <section class="rounded-[6px] border border-sand-200 bg-white px-6 py-5">
+    <p class="eyebrow mb-2">Historique</p>
+    <p class="text-sm text-sand-600">
+      {{ termines() }} stage{{ termines() > 1 ? 's' : '' }} mené{{ termines() > 1 ? 's' : '' }} à
+      terme dans votre structure, {{ dossiers().length }} dossier(s) au total.
+    </p>
+  </section>
+}

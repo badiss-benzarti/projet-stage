@@ -1,0 +1,66 @@
+<header class="mb-6">
+  <p class="eyebrow">Espace entreprise</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Mes stagiaires</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+  <div class="grid gap-6" [class]="selection() ? 'lg:grid-cols-[1fr_340px]' : ''">
+    <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+      <gs-internship-table
+        [internships]="dossiers()"
+        [showCompany]="false"
+        actionLabel="Détail"
+        emptyTitle="Aucun stagiaire"
+        emptyHint="Les stages que vous acceptez apparaîtront ici."
+        (select)="ouvrir($event)"
+      />
+    </section>
+
+    @if (selection(); as d) {
+      <aside class="rounded-[6px] border border-sand-200 bg-white lg:sticky lg:top-20 lg:self-start">
+        <div class="flex items-start justify-between gap-3 border-b border-sand-100 px-5 py-4">
+          <div class="min-w-0">
+            <p class="truncate font-medium text-sand-900">{{ d.studentName }}</p>
+            <p class="mt-0.5 truncate text-sm text-sand-500">{{ d.studentEmail }}</p>
+          </div>
+          <button type="button" (click)="fermer()" aria-label="Fermer"
+            class="shrink-0 text-sand-400 hover:text-sand-700">×</button>
+        </div>
+
+        <dl class="space-y-2.5 px-5 py-4 text-sm">
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">État</dt>
+            <dd><gs-status-badge [status]="d.status" /></dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Sujet</dt>
+            <dd class="text-right text-sand-800">{{ d.title }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Encadrant</dt>
+            <dd class="text-right text-sand-800">{{ d.supervisorName ?? '—' }}</dd>
+          </div>
+          <div class="flex justify-between gap-3">
+            <dt class="text-sand-500">Période</dt>
+            <dd class="text-right text-sand-800 tabular">{{ d.startDate }} → {{ d.endDate }}</dd>
+          </div>
+        </dl>
+
+        @if (d.history.length > 0) {
+          <div class="border-t border-sand-100 px-5 py-4">
+            <p class="eyebrow mb-2">Historique</p>
+            <ol class="space-y-1.5">
+              @for (entree of d.history; track entree.at) {
+                <li class="text-xs text-sand-600">
+                  {{ entree.toStatus }} <span class="text-sand-400">· {{ entree.actorName }}</span>
+                </li>
+              }
+            </ol>
+          </div>
+        }
+      </aside>
+    }
+  </div>
+}

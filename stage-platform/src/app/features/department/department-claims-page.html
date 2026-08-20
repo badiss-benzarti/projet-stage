@@ -1,0 +1,33 @@
+<header class="mb-6">
+  <p class="eyebrow">Département pédagogique</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Réclamations</h1>
+  <p class="mt-1 text-sm text-sand-500">
+    L’étudiant peut relancer après chaque réponse. Seule la clôture met fin au dossier.
+  </p>
+</header>
+
+@if (erreur(); as message) {
+  <p class="mb-5 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">{{ message }}</p>
+}
+
+@if (chargement()) {
+  <gs-spinner />
+} @else if (reclamations().length === 0) {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state title="Aucune réclamation en cours"
+      hint="Les contestations de note et de validation de tâche apparaîtront ici." icon="✓" />
+  </div>
+} @else {
+  <div class="space-y-5">
+    @for (reclamation of reclamations(); track reclamation.id) {
+      <gs-claim-thread
+        [claim]="reclamation"
+        [myRole]="monRole"
+        [canClose]="true"
+        [busy]="envoi()"
+        (reply)="repondre(reclamation, $event)"
+        (close)="cloturer(reclamation, $event)"
+      />
+    }
+  </div>
+}
