@@ -24,7 +24,7 @@ réclamations, notifications, monitoring et prédiction du risque par apprentiss
                          Angular  (4200)
                              │
                              ▼
-                      API Gateway  (8080)
+                      API Gateway  (8090)
                              │
         ┌────────────┬───────┼───────┬────────────┬────────────┐
         ▼            ▼       ▼       ▼            ▼            ▼
@@ -48,10 +48,12 @@ partagée. Les services ne se connaissent qu'à l'exécution, via **Eureka** et 
 
 ## Ports
 
+> Le gateway écoute sur **8090** et non 8080 : le port 8080 est occupé par le listener HTTP d'Oracle XDB sur la machine de développement.
+
 | Composant | Port | Exposé | Base |
 |---|---|---|---|
 | Angular | 4200 | oui | — |
-| API Gateway | 8080 | oui | — |
+| API Gateway | 8090 | oui | — |
 | auth-service | 8081 | non | `auth_db` |
 | user-service | 8082 | non | `user_db` |
 | internship-service ⭐ | 8083 | non | `internship_db` |

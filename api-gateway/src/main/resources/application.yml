@@ -1,0 +1,22 @@
+# =====================================================================
+#  Configuration de BOOTSTRAP du gateway.
+#  Tout le reste (port, routes, CORS) est servi par le config-server,
+#  fichier config-repo/api-gateway.yml
+# =====================================================================
+
+spring:
+  application:
+    # Doit correspondre EXACTEMENT au nom du fichier dans config-repo
+    name: api-gateway
+
+  config:
+    # "optional:" evite que le gateway refuse de demarrer si le
+    # config-server n'est pas encore joignable.
+    import: optional:configserver:http://${CONFIG_HOST:localhost}:8888
+
+  cloud:
+    config:
+      retry:
+        max-attempts: 6
+        initial-interval: 2000
+        max-interval: 10000
