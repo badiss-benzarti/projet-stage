@@ -24,6 +24,7 @@ export const NAV_BY_ROLE: Readonly<Record<Role, readonly NavSection[]>> = {
       title: 'Mon stage',
       items: [
         { label: 'Tableau de bord', route: '/etudiant', exact: true },
+        { label: 'Mon profil', route: '/etudiant/profil' },
         { label: 'Ma demande', route: '/etudiant/demande' },
         { label: 'Journal de stage', route: '/etudiant/journal' },
         { label: 'Documents', route: '/etudiant/documents' },
@@ -42,6 +43,7 @@ export const NAV_BY_ROLE: Readonly<Record<Role, readonly NavSection[]>> = {
       title: 'Entreprise',
       items: [
         { label: 'Tableau de bord', route: '/entreprise', exact: true },
+        { label: 'Profil de l’entreprise', route: '/entreprise/profil' },
         { label: 'Demandes reçues', route: '/entreprise/demandes' },
         { label: 'Mes stagiaires', route: '/entreprise/stagiaires' },
         { label: 'Encadrants', route: '/entreprise/encadrants' },

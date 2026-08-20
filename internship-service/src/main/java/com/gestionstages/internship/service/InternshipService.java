@@ -71,6 +71,12 @@ public class InternshipService {
                 .academicYear(req.academicYear())
                 .companyId(req.companyId())
                 .companyName(req.companyName())
+                .companyAddress(req.companyAddress())
+                .companyEmail(req.companyEmail())
+                .companyPhone(req.companyPhone())
+                .contactName(req.contactName())
+                .contactEmail(req.contactEmail())
+                .contactPhone(req.contactPhone())
                 .startDate(req.startDate())
                 .endDate(req.endDate())
                 .status(DRAFT)
@@ -101,6 +107,12 @@ public class InternshipService {
         i.setAcademicYear(req.academicYear());
         i.setCompanyId(req.companyId());
         i.setCompanyName(req.companyName());
+        i.setCompanyAddress(req.companyAddress());
+        i.setCompanyEmail(req.companyEmail());
+        i.setCompanyPhone(req.companyPhone());
+        i.setContactName(req.contactName());
+        i.setContactEmail(req.contactEmail());
+        i.setContactPhone(req.contactPhone());
         i.setStartDate(req.startDate());
         i.setEndDate(req.endDate());
 
@@ -116,6 +128,10 @@ public class InternshipService {
             throw new ApiExceptions.InvalidTransitionException("Seul un brouillon peut etre supprime");
         }
         internships.delete(i);
+    }
+
+    private boolean estVide(String valeur) {
+        return valeur == null || valeur.isBlank();
     }
 
     private void validateDates(InternshipDto.Request req) {
@@ -219,20 +235,43 @@ public class InternshipService {
     private void applyBusinessEffects(Internship i, InternshipDto.TransitionRequest req) {
         switch (req.target()) {
             case SUBMITTED -> {
-                if (i.getCompanyId() == null) {
+                // L'entreprise d'accueil n'a pas forcement de compte sur la
+                // plateforme : un etudiant trouve souvent son stage dans une
+                // structure qui n'y est pas referencee. On exige donc les
+                // informations, pas un identifiant.
+                if (estVide(i.getCompanyName())) {
                     throw new ApiExceptions.BusinessRuleException(
                             "Renseignez l'entreprise d'accueil avant de soumettre");
+                }
+                if (estVide(i.getCompanyEmail()) && i.getCompanyId() == null) {
+                    throw new ApiExceptions.BusinessRuleException(
+                            "Renseignez l'email de l'entreprise d'accueil");
+                }
+                if (estVide(i.getContactName())) {
+                    throw new ApiExceptions.BusinessRuleException(
+                            "Renseignez le contact de l'encadrant en entreprise");
                 }
                 i.setSubmittedAt(Instant.now());
             }
             case REJECTED, REFUSED -> i.setRejectionReason(req.comment());
             case ACCEPTED -> {
-                if (req.supervisorId() == null) {
-                    throw new ApiExceptions.BusinessRuleException(
-                            "Designez un encadrant pour accepter le stagiaire");
+                // Deux cas. Entreprise partenaire : elle designe un de ses
+                // encadrants, identifie par son id. Entreprise sans compte :
+                // le service des stages enregistre la reponse, et l'encadrant
+                // n'est connu que par le contact saisi sur la demande.
+                if (req.supervisorId() != null) {
+                    i.setSupervisorId(req.supervisorId());
+                    i.setSupervisorName(req.supervisorName());
+                } else {
+                    String nom = !estVide(req.supervisorName())
+                            ? req.supervisorName()
+                            : i.getContactName();
+                    if (estVide(nom)) {
+                        throw new ApiExceptions.BusinessRuleException(
+                                "Designez un encadrant pour accepter le stagiaire");
+                    }
+                    i.setSupervisorName(nom);
                 }
-                i.setSupervisorId(req.supervisorId());
-                i.setSupervisorName(req.supervisorName());
             }
             default -> { /* aucun effet de bord */ }
         }

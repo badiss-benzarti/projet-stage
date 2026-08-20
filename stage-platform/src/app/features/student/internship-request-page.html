@@ -27,7 +27,6 @@
       </div>
 
       <div class="grid gap-5 px-6 py-6 sm:grid-cols-2">
-
         <fieldset class="sm:col-span-2">
           <legend class="mb-2 text-sm font-medium text-sand-700">Type de stage</legend>
           <div class="flex flex-wrap gap-2">
@@ -35,14 +34,10 @@
               { valeur: 'PFE', libelle: 'Projet de fin d’études' },
               { valeur: 'ETE', libelle: 'Stage d’été' }
             ]; track option.valeur) {
-              <label
-                class="cursor-pointer rounded-[5px] border px-3.5 py-2 text-sm transition-colors"
-                [class]="
-                  form.controls.type.value === option.valeur
-                    ? 'border-petrol-600 bg-petrol-50 text-petrol-800 font-medium'
-                    : 'border-sand-300 text-sand-600 hover:border-sand-400'
-                "
-              >
+              <label class="cursor-pointer rounded-[5px] border px-3.5 py-2 text-sm transition-colors"
+                [class]="form.controls.type.value === option.valeur
+                  ? 'border-petrol-600 bg-petrol-50 font-medium text-petrol-800'
+                  : 'border-sand-300 text-sand-600 hover:border-sand-400'">
                 <input type="radio" formControlName="type" [value]="option.valeur" class="sr-only" />
                 {{ option.libelle }}
               </label>
@@ -51,15 +46,9 @@
         </fieldset>
 
         <div class="sm:col-span-2">
-          <label for="title" class="mb-1.5 block text-sm font-medium text-sand-700">
-            Intitulé du sujet
-          </label>
-          <input
-            id="title"
-            formControlName="title"
-            placeholder="Plateforme de gestion des stages"
-            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
-          />
+          <label for="title" class="mb-1.5 block text-sm font-medium text-sand-700">Intitulé du sujet</label>
+          <input id="title" formControlName="title" placeholder="Plateforme de gestion des stages"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
           @if (form.controls.title.touched && form.controls.title.invalid) {
             <p class="mt-1.5 text-xs text-bad-500">L’intitulé est obligatoire.</p>
           }
@@ -69,24 +58,15 @@
           <label for="description" class="mb-1.5 block text-sm font-medium text-sand-700">
             Description <span class="font-normal text-sand-400">— facultatif</span>
           </label>
-          <textarea
-            id="description"
-            formControlName="description"
-            rows="3"
+          <textarea id="description" formControlName="description" rows="3"
             placeholder="Contexte, technologies envisagées, objectifs…"
-            class="w-full resize-y rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
-          ></textarea>
+            class="w-full resize-y rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100"></textarea>
         </div>
 
         <div>
-          <label for="academicYear" class="mb-1.5 block text-sm font-medium text-sand-700">
-            Année universitaire
-          </label>
-          <select
-            id="academicYear"
-            formControlName="academicYear"
-            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
-          >
+          <label for="academicYear" class="mb-1.5 block text-sm font-medium text-sand-700">Année universitaire</label>
+          <select id="academicYear" formControlName="academicYear"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100">
             @for (annee of anneesUniversitaires; track annee) {
               <option [value]="annee">{{ annee }}</option>
             }
@@ -97,71 +77,144 @@
 
     <section class="rounded-[6px] border border-sand-200 bg-white">
       <div class="border-b border-sand-100 px-6 py-4">
-        <p class="eyebrow">Entreprise d’accueil et période</p>
+        <p class="eyebrow">Entreprise d’accueil</p>
       </div>
 
-      <div class="grid gap-5 px-6 py-6 sm:grid-cols-2">
-        <div class="sm:col-span-2">
+      <div class="px-6 py-6">
+        <div class="mb-5 flex flex-wrap gap-2">
+          <button type="button" [disabled]="!modifiable()" (click)="basculerReferentiel(false)"
+            class="rounded-[5px] border px-3.5 py-2 text-sm transition-colors disabled:opacity-60"
+            [class]="!horsReferentiel()
+              ? 'border-petrol-600 bg-petrol-50 font-medium text-petrol-800'
+              : 'border-sand-300 text-sand-600 hover:border-sand-400'">
+            Entreprise partenaire
+          </button>
+          <button type="button" [disabled]="!modifiable()" (click)="basculerReferentiel(true)"
+            class="rounded-[5px] border px-3.5 py-2 text-sm transition-colors disabled:opacity-60"
+            [class]="horsReferentiel()
+              ? 'border-petrol-600 bg-petrol-50 font-medium text-petrol-800'
+              : 'border-sand-300 text-sand-600 hover:border-sand-400'">
+            Autre entreprise
+          </button>
+        </div>
+
+        @if (!horsReferentiel()) {
           <label for="companyId" class="mb-1.5 block text-sm font-medium text-sand-700">
-            Entreprise
+            Choisir dans le référentiel
           </label>
-          <select
-            id="companyId"
-            formControlName="companyId"
-            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
-          >
-            <option [ngValue]="null" disabled>Sélectionnez une entreprise…</option>
+          <select id="companyId" [disabled]="!modifiable()"
+            (change)="choisirPartenaire($any($event.target).value)"
+            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100">
+            <option value="" [selected]="form.controls.companyId.value === null" disabled>
+              Sélectionnez une entreprise…
+            </option>
             @for (entreprise of entreprises(); track entreprise.id) {
-              <option [ngValue]="entreprise.id">{{ entreprise.name }} — {{ entreprise.address }}</option>
+              <option [value]="entreprise.id" [selected]="form.controls.companyId.value === entreprise.id">
+                {{ entreprise.name }} — {{ entreprise.address }}
+              </option>
             }
           </select>
           @if (entreprises().length === 0) {
             <p class="mt-1.5 text-xs text-warn-700">
-              Aucune entreprise référencée. Contactez le service des stages.
+              Aucun partenaire référencé. Utilisez « Autre entreprise ».
             </p>
           }
-        </div>
+        } @else {
+          <p class="mb-4 rounded-[5px] border border-petrol-300/50 bg-petrol-50 px-3 py-2 text-sm text-petrol-800">
+            L’entreprise n’a pas de compte sur la plateforme : renseignez ses coordonnées.
+            Le service des stages les vérifiera.
+          </p>
 
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="companyName" class="mb-1.5 block text-sm font-medium text-sand-700">Raison sociale</label>
+              <input id="companyName" formControlName="companyName" placeholder="SocieteTech Partner"
+                class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+            </div>
+            <div class="sm:col-span-2">
+              <label for="companyAddress" class="mb-1.5 block text-sm font-medium text-sand-700">Adresse</label>
+              <input id="companyAddress" formControlName="companyAddress" placeholder="Rue du Lac, Tunis"
+                class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+            </div>
+            <div>
+              <label for="companyEmail" class="mb-1.5 block text-sm font-medium text-sand-700">Email</label>
+              <input id="companyEmail" type="email" formControlName="companyEmail" placeholder="contact@entreprise.tn"
+                class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+            </div>
+            <div>
+              <label for="companyPhone" class="mb-1.5 block text-sm font-medium text-sand-700">Téléphone</label>
+              <input id="companyPhone" formControlName="companyPhone" placeholder="71 234 567"
+                class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="rounded-[6px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Contact de l’encadrant en entreprise</p>
+        <p class="mt-1 text-xs text-sand-500">
+          La personne qui vous suivra au quotidien et validera votre journal de stage.
+        </p>
+      </div>
+
+      <div class="grid gap-4 px-6 py-6 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label for="contactName" class="mb-1.5 block text-sm font-medium text-sand-700">Nom et prénom</label>
+          <input id="contactName" formControlName="contactName" placeholder="Youssef Gharbi"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+          @if (form.controls.contactName.touched && form.controls.contactName.invalid) {
+            <p class="mt-1.5 text-xs text-bad-500">Le contact de l’encadrant est obligatoire.</p>
+          }
+        </div>
+        <div>
+          <label for="contactEmail" class="mb-1.5 block text-sm font-medium text-sand-700">Email</label>
+          <input id="contactEmail" type="email" formControlName="contactEmail" placeholder="encadrant@entreprise.tn"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+          @if (form.controls.contactEmail.touched && form.controls.contactEmail.invalid) {
+            <p class="mt-1.5 text-xs text-bad-500">Email valide obligatoire.</p>
+          }
+        </div>
+        <div>
+          <label for="contactPhone" class="mb-1.5 block text-sm font-medium text-sand-700">
+            Téléphone <span class="font-normal text-sand-400">— facultatif</span>
+          </label>
+          <input id="contactPhone" formControlName="contactPhone" placeholder="98 765 432"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-[6px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Période</p>
+      </div>
+      <div class="grid gap-4 px-6 py-6 sm:grid-cols-2">
         <div>
           <label for="startDate" class="mb-1.5 block text-sm font-medium text-sand-700">Début</label>
-          <input
-            id="startDate"
-            type="date"
-            formControlName="startDate"
-            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
-          />
+          <input id="startDate" type="date" formControlName="startDate"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
         </div>
-
         <div>
           <label for="endDate" class="mb-1.5 block text-sm font-medium text-sand-700">Fin</label>
-          <input
-            id="endDate"
-            type="date"
-            formControlName="endDate"
-            class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100 disabled:text-sand-500"
-          />
+          <input id="endDate" type="date" formControlName="endDate"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
         </div>
       </div>
     </section>
 
     @if (erreur(); as message) {
-      <p class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">
-        {{ message }}
-      </p>
+      <p class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">{{ message }}</p>
     }
     @if (succes(); as message) {
-      <p class="rounded-[6px] border border-ok-500/25 bg-ok-50 px-4 py-3 text-sm text-ok-700">
-        {{ message }}
-      </p>
+      <p class="rounded-[6px] border border-ok-500/25 bg-ok-50 px-4 py-3 text-sm text-ok-700">{{ message }}</p>
     }
 
     @if (modifiable()) {
       <div class="flex items-center gap-3">
-        <button
-          type="submit"
-          [disabled]="enregistrement()"
-          class="rounded-[5px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60"
-        >
+        <button type="submit" [disabled]="enregistrement()"
+          class="rounded-[5px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
           {{ dossier() ? 'Enregistrer les modifications' : 'Créer le brouillon' }}
         </button>
         <a routerLink="/etudiant" class="text-sm text-sand-500 hover:text-sand-800">Annuler</a>

@@ -42,7 +42,10 @@
       </div>
 
       <h2 class="text-xl font-medium text-sand-900">Connexion</h2>
-      <p class="mt-1 mb-8 text-sm text-sand-500">Accédez à votre espace.</p>
+      <p class="mt-1 mb-8 text-sm text-sand-500">
+        Accédez à votre espace, ou
+        <a routerLink="/inscription" class="text-petrol-700 underline underline-offset-2">créez un compte</a>.
+      </p>
 
       <form [formGroup]="form" (ngSubmit)="soumettre()" class="space-y-5" novalidate>
 

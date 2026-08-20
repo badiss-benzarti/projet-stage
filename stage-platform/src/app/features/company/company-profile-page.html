@@ -1,0 +1,71 @@
+<header class="mb-6">
+  <p class="eyebrow">Espace entreprise</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Profil de l’entreprise</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+
+  @if (!existe()) {
+    <p class="mb-5 rounded-[6px] border border-warn-500/25 bg-warn-50 px-4 py-3 text-sm text-warn-700">
+      Renseignez votre structure : c’est ce profil qui rattache les demandes de
+      stage et vos encadrants. Sans lui, vous ne pouvez accueillir personne.
+    </p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate
+    class="rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Informations générales</p>
+    </div>
+
+    <div class="grid gap-4 px-6 py-6 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <label for="name" class="mb-1.5 block text-sm font-medium text-sand-700">Raison sociale</label>
+        <input id="name" formControlName="name" placeholder="SocieteTech Partner"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div class="sm:col-span-2">
+        <label for="address" class="mb-1.5 block text-sm font-medium text-sand-700">Adresse</label>
+        <input id="address" formControlName="address" placeholder="Rue du Lac, Tunis"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="phone" class="mb-1.5 block text-sm font-medium text-sand-700">Téléphone</label>
+        <input id="phone" formControlName="phone" placeholder="71 234 567"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div>
+        <label for="email" class="mb-1.5 block text-sm font-medium text-sand-700">Email de contact</label>
+        <input id="email" type="email" formControlName="email"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+      </div>
+      <div class="sm:col-span-2">
+        <label for="taxId" class="mb-1.5 block text-sm font-medium text-sand-700">
+          Matricule fiscal <span class="font-normal text-sand-400">— figure sur la convention</span>
+        </label>
+        <input id="taxId" formControlName="taxId" placeholder="1234567A"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+      </div>
+
+      @if (erreur(); as message) {
+        <p class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-3 py-2.5 text-sm text-bad-700 sm:col-span-2">
+          {{ message }}
+        </p>
+      }
+      @if (succes(); as message) {
+        <p class="rounded-[6px] border border-ok-500/25 bg-ok-50 px-3 py-2.5 text-sm text-ok-700 sm:col-span-2">
+          {{ message }}
+        </p>
+      }
+
+      <div class="sm:col-span-2">
+        <button type="submit" [disabled]="envoi()"
+          class="rounded-[5px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+          {{ existe() ? 'Enregistrer les modifications' : 'Créer le profil' }}
+        </button>
+      </div>
+    </div>
+  </form>
+}

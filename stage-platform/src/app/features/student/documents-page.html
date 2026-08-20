@@ -11,6 +11,48 @@
   </div>
 } @else {
 
+  <!-- Demandes administratives : distinct du depot de fichiers -->
+  <section class="mb-6 rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Demander un document</p>
+      <p class="mt-1 text-xs text-sand-500">
+        Le service des stages édite le document et le met à votre disposition.
+      </p>
+    </div>
+
+    <div class="px-6 py-5">
+      <div class="flex flex-wrap gap-2">
+        @for (type of typesDemandables; track type) {
+          <button type="button" [disabled]="demandeEnCours()" (click)="demander(type)"
+            class="rounded-[5px] border border-sand-300 px-3.5 py-2 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700 disabled:opacity-60">
+            Demander la {{ requestTypeLabels[type].toLowerCase() }}
+          </button>
+        }
+      </div>
+
+      @if (demandes().length > 0) {
+        <ul class="mt-4 divide-y divide-sand-100 border-t border-sand-100">
+          @for (demande of demandes(); track demande.id) {
+            <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5">
+              <span class="text-sm text-sand-800">{{ requestTypeLabels[demande.type] }}</span>
+              <span class="ml-auto rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                [class]="demande.status === 'ISSUED'
+                  ? 'border-ok-500/25 bg-ok-50 text-ok-700'
+                  : demande.status === 'REJECTED'
+                    ? 'border-bad-500/25 bg-bad-50 text-bad-700'
+                    : 'border-warn-500/25 bg-warn-50 text-warn-700'">
+                {{ requestStatusLabels[demande.status] }}
+              </span>
+              @if (demande.reason) {
+                <span class="w-full text-sm text-bad-700/80 italic">« {{ demande.reason }} »</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </section>
+
   <section class="mb-6 rounded-[6px] border border-sand-200 bg-white">
     <div class="border-b border-sand-100 px-6 py-4">
       <p class="eyebrow">Déposer un document</p>

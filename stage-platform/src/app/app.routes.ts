@@ -20,6 +20,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/login-page').then((m) => m.LoginPage),
   },
   {
+    path: 'inscription',
+    title: 'Créer un compte — Gestion des stages',
+    loadComponent: () => import('./features/auth/register-page').then((m) => m.RegisterPage),
+  },
+  {
     path: 'acces-refuse',
     title: 'Accès refusé',
     loadComponent: () => import('./shared/access-denied').then((m) => m.AccessDenied),
@@ -39,6 +44,8 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/student/student-dashboard').then((m) => m.StudentDashboard),
           },
+          { path: 'profil', title: 'Mon profil',
+            loadComponent: () => import('./features/student/profile-page').then((m) => m.ProfilePage) },
           { path: 'demande', title: 'Ma demande',
             loadComponent: () => import('./features/student/internship-request-page').then((m) => m.InternshipRequestPage) },
           { path: 'journal', title: 'Journal de stage',
@@ -53,6 +60,8 @@ export const routes: Routes = [
         canActivate: [roleGuard('ENTREPRISE')],
         children: [
           { path: '', title: 'Entreprise', loadComponent: () => import('./features/company/company-dashboard').then((m) => m.CompanyDashboard) },
+          { path: 'profil', title: 'Profil de l’entreprise',
+            loadComponent: () => import('./features/company/company-profile-page').then((m) => m.CompanyProfilePage) },
           { path: 'demandes', title: 'Demandes reçues', loadComponent: () => import('./features/company/company-requests-page').then((m) => m.CompanyRequestsPage) },
           { path: 'stagiaires', title: 'Mes stagiaires', loadComponent: () => import('./features/company/company-interns-page').then((m) => m.CompanyInternsPage) },
           { path: 'encadrants', title: 'Encadrants', loadComponent: () => import('./features/company/company-supervisors-page').then((m) => m.CompanySupervisorsPage) },

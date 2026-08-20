@@ -11,8 +11,11 @@ import { StatusBadge } from '../../shared/status-badge';
 /**
  * Depot et modification de la demande de stage.
  *
- * Le formulaire n'est modifiable qu'a l'etat DRAFT : cette regle vient
- * du backend, on se contente de la refleter en desactivant les champs.
+ * L'entreprise d'accueil peut etre choisie dans le referentiel des
+ * partenaires, ou saisie librement : un etudiant trouve souvent son
+ * stage dans une structure qui n'a aucun compte sur la plateforme.
+ * Le cahier des charges exige ce remplissage libre, ainsi que le
+ * contact de l'encadrant.
  */
 @Component({
   selector: 'gs-internship-request-page',
@@ -32,6 +35,8 @@ export class InternshipRequestPage {
 
   protected readonly dossier = signal<Internship | null>(null);
   protected readonly entreprises = signal<readonly Company[]>([]);
+  /** Vrai quand l'etudiant saisit une entreprise hors referentiel. */
+  protected readonly horsReferentiel = signal(false);
 
   protected readonly modifiable = computed(() => {
     const d = this.dossier();
@@ -45,7 +50,17 @@ export class InternshipRequestPage {
     title: ['', [Validators.required, Validators.maxLength(200)]],
     description: [''],
     academicYear: [this.anneesUniversitaires[0], Validators.required],
-    companyId: [null as number | null, Validators.required],
+
+    companyId: [null as number | null],
+    companyName: [''],
+    companyAddress: [''],
+    companyEmail: ['', Validators.email],
+    companyPhone: [''],
+
+    contactName: ['', Validators.required],
+    contactEmail: ['', [Validators.required, Validators.email]],
+    contactPhone: [''],
+
     startDate: ['', Validators.required],
     endDate: ['', Validators.required],
   });
@@ -77,12 +92,20 @@ export class InternshipRequestPage {
   }
 
   private remplir(d: Internship): void {
+    this.horsReferentiel.set(d.companyId === null);
     this.form.patchValue({
       type: d.type,
       title: d.title,
       description: d.description ?? '',
       academicYear: d.academicYear,
       companyId: d.companyId,
+      companyName: d.companyName ?? '',
+      companyAddress: d.companyAddress ?? '',
+      companyEmail: d.companyEmail ?? '',
+      companyPhone: d.companyPhone ?? '',
+      contactName: d.contactName ?? '',
+      contactEmail: d.contactEmail ?? '',
+      contactPhone: d.contactPhone ?? '',
       startDate: d.startDate ?? '',
       endDate: d.endDate ?? '',
     });
@@ -91,24 +114,65 @@ export class InternshipRequestPage {
     }
   }
 
+  /** Bascule entre partenaire reference et saisie libre. */
+  protected basculerReferentiel(hors: boolean): void {
+    this.horsReferentiel.set(hors);
+    this.erreur.set(null);
+    if (hors) {
+      this.form.patchValue({ companyId: null });
+    } else {
+      this.form.patchValue({ companyAddress: '', companyEmail: '', companyPhone: '' });
+    }
+  }
+
+  /** Recopie les coordonnees du partenaire choisi, pour information. */
+  protected choisirPartenaire(id: string): void {
+    const identifiant = Number(id);
+    const partenaire = this.entreprises().find((c) => c.id === identifiant);
+    this.form.patchValue({
+      companyId: identifiant,
+      companyName: partenaire?.name ?? '',
+      companyAddress: partenaire?.address ?? '',
+      companyEmail: partenaire?.email ?? '',
+      companyPhone: partenaire?.phone ?? '',
+    });
+  }
+
   protected soumettre(): void {
-    if (this.form.invalid || this.enregistrement()) {
+    if (this.enregistrement()) {
+      return;
+    }
+    if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.erreur.set('Complétez les champs obligatoires.');
+      return;
+    }
+    const v = this.form.getRawValue();
+
+    if (!this.horsReferentiel() && v.companyId === null) {
+      this.erreur.set('Choisissez une entreprise partenaire, ou saisissez-en une.');
+      return;
+    }
+    if (this.horsReferentiel() && v.companyName.trim().length === 0) {
+      this.erreur.set('Renseignez le nom de l’entreprise d’accueil.');
       return;
     }
 
-    const valeurs = this.form.getRawValue();
-    const entreprise = this.entreprises().find((c) => c.id === valeurs.companyId);
-
     const demande = {
-      type: valeurs.type,
-      title: valeurs.title.trim(),
-      description: valeurs.description.trim() || null,
-      academicYear: valeurs.academicYear,
-      companyId: valeurs.companyId,
-      companyName: entreprise?.name ?? null,
-      startDate: valeurs.startDate || null,
-      endDate: valeurs.endDate || null,
+      type: v.type,
+      title: v.title.trim(),
+      description: v.description.trim() || null,
+      academicYear: v.academicYear,
+      companyId: this.horsReferentiel() ? null : v.companyId,
+      companyName: v.companyName.trim() || null,
+      companyAddress: v.companyAddress.trim() || null,
+      companyEmail: v.companyEmail.trim() || null,
+      companyPhone: v.companyPhone.trim() || null,
+      contactName: v.contactName.trim() || null,
+      contactEmail: v.contactEmail.trim() || null,
+      contactPhone: v.contactPhone.trim() || null,
+      startDate: v.startDate || null,
+      endDate: v.endDate || null,
     };
 
     this.enregistrement.set(true);
@@ -125,7 +189,9 @@ export class InternshipRequestPage {
         this.dossier.set(d);
         this.enregistrement.set(false);
         this.succes.set(
-          existant ? 'Demande enregistrée.' : 'Brouillon créé. Soumettez-le depuis le tableau de bord.',
+          existant
+            ? 'Demande enregistrée.'
+            : 'Brouillon créé. Soumettez-le depuis le tableau de bord.',
         );
       },
       error: (e: { error?: { message?: string; champs?: Record<string, string> } }) => {
@@ -140,7 +206,6 @@ export class InternshipRequestPage {
     });
   }
 
-  /** Trois annees universitaires autour de l'annee courante. */
   private calculerAnnees(): readonly string[] {
     const a = new Date().getFullYear();
     return [`${a}-${a + 1}`, `${a - 1}-${a}`, `${a + 1}-${a + 2}`];

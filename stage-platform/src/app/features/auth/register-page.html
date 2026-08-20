@@ -1,0 +1,86 @@
+<div class="flex min-h-screen items-center justify-center bg-sand-100 px-6 py-12">
+  <div class="w-full max-w-md">
+
+    <div class="mb-8">
+      <div class="eyebrow">ESPRIT</div>
+      <h1 class="mt-1 text-2xl font-medium text-sand-900">Créer un compte</h1>
+      <p class="mt-1 text-sm text-sand-500">
+        Vous avez déjà un compte ?
+        <a routerLink="/connexion" class="text-petrol-700 underline underline-offset-2">Se connecter</a>
+      </p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate
+      class="rounded-[6px] border border-sand-200 bg-white px-6 py-6">
+
+      <fieldset class="mb-5">
+        <legend class="mb-2 text-sm font-medium text-sand-700">Je suis</legend>
+        <div class="grid gap-2 sm:grid-cols-2">
+          @for (option of roles; track option.valeur) {
+            <label class="cursor-pointer rounded-[6px] border px-3.5 py-3 transition-colors"
+              [class]="form.controls.role.value === option.valeur
+                ? 'border-petrol-600 bg-petrol-50'
+                : 'border-sand-300 hover:border-sand-400'">
+              <input type="radio" formControlName="role" [value]="option.valeur" class="sr-only" />
+              <span class="block text-sm font-medium"
+                [class]="form.controls.role.value === option.valeur ? 'text-petrol-800' : 'text-sand-700'">
+                {{ option.libelle }}
+              </span>
+              <span class="mt-0.5 block text-xs text-sand-500">{{ option.aide }}</span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label for="firstName" class="mb-1.5 block text-sm font-medium text-sand-700">Prénom</label>
+          <input id="firstName" formControlName="firstName" autocomplete="given-name"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+        </div>
+        <div>
+          <label for="lastName" class="mb-1.5 block text-sm font-medium text-sand-700">Nom</label>
+          <input id="lastName" formControlName="lastName" autocomplete="family-name"
+            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label for="email" class="mb-1.5 block text-sm font-medium text-sand-700">Adresse email</label>
+        <input id="email" type="email" formControlName="email" autocomplete="username"
+          placeholder="prenom.nom@esprit.tn"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+        @if (form.controls.email.touched && form.controls.email.invalid) {
+          <p class="mt-1.5 text-xs text-bad-500">Renseignez une adresse email valide.</p>
+        }
+      </div>
+
+      <div class="mt-4">
+        <label for="password" class="mb-1.5 block text-sm font-medium text-sand-700">
+          Mot de passe <span class="font-normal text-sand-400">— 8 caractères minimum</span>
+        </label>
+        <input id="password" type="password" formControlName="password" autocomplete="new-password"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none" />
+        @if (form.controls.password.touched && form.controls.password.invalid) {
+          <p class="mt-1.5 text-xs text-bad-500">Huit caractères au minimum.</p>
+        }
+      </div>
+
+      @if (erreur(); as message) {
+        <p class="mt-4 rounded-[6px] border border-bad-500/25 bg-bad-50 px-3 py-2.5 text-sm text-bad-700">
+          {{ message }}
+        </p>
+      }
+
+      <button type="submit" [disabled]="enCours()"
+        class="mt-6 w-full rounded-[6px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+        {{ enCours() ? 'Création…' : 'Créer mon compte' }}
+      </button>
+
+      <p class="mt-4 text-center text-xs leading-relaxed text-sand-500">
+        Les encadrants sont déclarés par leur entreprise.
+        Les responsables de département sont créés par l’administration.
+      </p>
+    </form>
+  </div>
+</div>
