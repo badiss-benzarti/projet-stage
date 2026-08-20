@@ -44,9 +44,9 @@ export const routes: Routes = [
             loadComponent: () => import('./features/student/internship-request-page').then((m) => m.InternshipRequestPage) },
           { path: 'journal', title: 'Journal de stage',
             loadComponent: () => import('./features/student/journal-page').then((m) => m.JournalPage) },
-          { path: 'documents', title: 'Documents', data: { titre: 'Mes documents' }, loadComponent: placeholder },
-          { path: 'note', title: 'Ma note', data: { titre: 'Ma note de stage' }, loadComponent: placeholder },
-          { path: 'reclamations', title: 'Réclamations', data: { titre: 'Mes réclamations' }, loadComponent: placeholder },
+          { path: 'documents', title: 'Mes documents', loadComponent: () => import('./features/student/documents-page').then((m) => m.DocumentsPage) },
+          { path: 'note', title: 'Ma note', loadComponent: () => import('./features/student/grade-page').then((m) => m.GradePage) },
+          { path: 'reclamations', title: 'Mes réclamations', loadComponent: () => import('./features/student/claims-page').then((m) => m.ClaimsPage) },
         ],
       },
       {
@@ -63,9 +63,9 @@ export const routes: Routes = [
         path: 'encadrant',
         canActivate: [roleGuard('ENCADRANT')],
         children: [
-          { path: '', title: 'Encadrement', data: { titre: 'Tableau de bord encadrant' }, loadComponent: placeholder },
-          { path: 'journaux', title: 'Journaux', data: { titre: 'Journaux à valider' }, loadComponent: placeholder },
-          { path: 'evaluations', title: 'Évaluations', data: { titre: 'Grilles d’évaluation' }, loadComponent: placeholder },
+          { path: '', title: 'Encadrement', loadComponent: () => import('./features/supervisor/supervisor-dashboard').then((m) => m.SupervisorDashboard) },
+          { path: 'journaux', title: 'Journaux à valider', loadComponent: () => import('./features/supervisor/supervisor-journal-page').then((m) => m.SupervisorJournalPage) },
+          { path: 'evaluations', title: 'Grille d’évaluation', loadComponent: () => import('./features/supervisor/supervisor-evaluation-page').then((m) => m.SupervisorEvaluationPage) },
         ],
       },
       {

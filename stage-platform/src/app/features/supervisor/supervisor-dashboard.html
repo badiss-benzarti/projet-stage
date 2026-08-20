@@ -1,0 +1,33 @@
+<header class="mb-7">
+  <p class="eyebrow">Espace encadrant</p>
+  <h1 class="mt-1 text-2xl font-medium text-sand-900">Mes stagiaires</h1>
+</header>
+
+@if (chargement()) {
+  <gs-spinner />
+} @else {
+  <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+    <gs-internship-table
+      [internships]="stagiaires()"
+      [showCompany]="false"
+      actionLabel="Voir le journal"
+      emptyTitle="Aucun stagiaire"
+      emptyHint="Les stagiaires vous seront rattachés lorsque l’entreprise vous désignera comme encadrant."
+      (select)="ouvrir($event)"
+    />
+  </section>
+
+  @if (risques().length > 0) {
+    <section class="mt-7">
+      <p class="eyebrow mb-3">Suivi du risque — estimation du modèle</p>
+      <div class="grid gap-4 md:grid-cols-2">
+        @for (risque of risques(); track risque.internshipId) {
+          <div>
+            <p class="mb-1.5 text-sm font-medium text-sand-800">{{ risque.studentName }}</p>
+            <gs-risk-gauge [assessment]="risque" />
+          </div>
+        }
+      </div>
+    </section>
+  }
+}

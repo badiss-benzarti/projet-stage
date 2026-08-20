@@ -1,0 +1,74 @@
+<header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <p class="eyebrow">Espace étudiant</p>
+    <h1 class="mt-1 text-2xl font-medium text-sand-900">Mes réclamations</h1>
+  </div>
+  <button type="button" (click)="basculerFormulaire()"
+    class="rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800">
+    {{ formulaireOuvert() ? 'Annuler' : 'Nouvelle réclamation' }}
+  </button>
+</header>
+
+@if (erreur(); as message) {
+  <p class="mb-5 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">{{ message }}</p>
+}
+
+@if (formulaireOuvert()) {
+  <form [formGroup]="form" (ngSubmit)="deposer()" novalidate
+    class="mb-6 rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Nouvelle réclamation</p>
+    </div>
+
+    <div class="space-y-4 px-6 py-5">
+      <fieldset>
+        <legend class="mb-2 text-sm font-medium text-sand-700">Objet</legend>
+        <div class="flex flex-wrap gap-2">
+          @for (option of types; track option.valeur) {
+            <label class="cursor-pointer rounded-[5px] border px-3 py-1.5 text-sm transition-colors"
+              [class]="form.controls.type.value === option.valeur
+                ? 'border-petrol-600 bg-petrol-50 font-medium text-petrol-800'
+                : 'border-sand-300 text-sand-600 hover:border-sand-400'">
+              <input type="radio" formControlName="type" [value]="option.valeur" class="sr-only" />
+              {{ option.libelle }}
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div>
+        <label for="subject" class="mb-1.5 block text-sm font-medium text-sand-700">Sujet</label>
+        <input id="subject" formControlName="subject" placeholder="Contestation de la note d’assiduité"
+          class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
+      </div>
+
+      <div>
+        <label for="message" class="mb-1.5 block text-sm font-medium text-sand-700">Votre message</label>
+        <textarea id="message" formControlName="message" rows="4"
+          placeholder="Exposez précisément ce que vous contestez et les éléments à l’appui…"
+          class="w-full resize-y rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none"></textarea>
+      </div>
+
+      <button type="submit" [disabled]="envoi()"
+        class="rounded-[5px] bg-petrol-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+        Déposer la réclamation
+      </button>
+    </div>
+  </form>
+}
+
+@if (chargement()) {
+  <gs-spinner />
+} @else if (reclamations().length === 0) {
+  <div class="rounded-[6px] border border-sand-200 bg-white">
+    <gs-empty-state title="Aucune réclamation"
+      hint="Vous pouvez contester une note ou la validation d’une tâche. Le département vous répondra, et vous pourrez relancer tant que le dossier n’est pas clos." />
+  </div>
+} @else {
+  <div class="space-y-5">
+    @for (reclamation of reclamations(); track reclamation.id) {
+      <gs-claim-thread [claim]="reclamation" myRole="ETUDIANT" [busy]="envoi()"
+        (reply)="repondre(reclamation, $event)" />
+    }
+  </div>
+}
