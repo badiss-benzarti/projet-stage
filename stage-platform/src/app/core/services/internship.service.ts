@@ -19,9 +19,16 @@ export class InternshipService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/internships';
 
+  /**
+   * Mes dossiers, le plus recent d'abord.
+   *
+   * Sans tri explicite, la base renvoie l'ordre d'insertion : le tableau
+   * de bord afficherait le premier stage jamais depose plutot que celui
+   * en cours.
+   */
   mine(page = 0, size = 10): Observable<Page<Internship>> {
     return this.http.get<Page<Internship>>(`${this.base}/mine`, {
-      params: new HttpParams().set('page', page).set('size', size),
+      params: new HttpParams().set('page', page).set('size', size).set('sort', 'id,desc'),
     });
   }
 
