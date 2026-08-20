@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: evaluation-service
+
+  config:
+    import: optional:configserver:http://${CONFIG_HOST:localhost}:8888
+
+  cloud:
+    config:
+      retry:
+        max-attempts: 6
+        initial-interval: 2000
+        max-interval: 10000
