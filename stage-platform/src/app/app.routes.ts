@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard, roleGuard } from './core/guards/auth.guard';
+import { authGuard, guestGuard, roleGuard } from './core/guards/auth.guard';
 
 
 /**
@@ -15,13 +15,28 @@ import { authGuard, roleGuard } from './core/guards/auth.guard';
  */
 export const routes: Routes = [
   {
+    path: '',
+    pathMatch: 'full',
+    canActivate: [guestGuard],
+    title: 'Plateforme de gestion des stages',
+    loadComponent: () => import('./features/auth/welcome-page').then((m) => m.WelcomePage),
+  },
+  {
     path: 'connexion',
     title: 'Connexion — Gestion des stages',
     loadComponent: () => import('./features/auth/login-page').then((m) => m.LoginPage),
   },
   {
     path: 'inscription',
+    pathMatch: 'full',
+    canActivate: [guestGuard],
     title: 'Créer un compte — Gestion des stages',
+    loadComponent: () => import('./features/auth/account-type-page').then((m) => m.AccountTypePage),
+  },
+  {
+    path: 'inscription/:role',
+    canActivate: [guestGuard],
+    title: 'Créer un compte',
     loadComponent: () => import('./features/auth/register-page').then((m) => m.RegisterPage),
   },
   {
@@ -102,8 +117,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/notifications/notifications-page').then((m) => m.NotificationsPage),
       },
-      { path: '', pathMatch: 'full', redirectTo: 'etudiant' },
     ],
   },
-  { path: '**', redirectTo: 'connexion' },
+  { path: '**', redirectTo: '' },
 ];

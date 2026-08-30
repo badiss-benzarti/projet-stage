@@ -34,3 +34,16 @@ export const roleGuard = (...roles: readonly Role[]): CanActivateFn => {
     return auth.hasAnyRole(...roles) ? true : router.createUrlTree(['/acces-refuse']);
   };
 };
+
+/**
+ * Reserve une page aux visiteurs non connectes.
+ *
+ * Un utilisateur deja authentifie qui revient sur l'accueil est renvoye
+ * vers son espace : lui reproposer de se connecter n'aurait pas de sens.
+ */
+export const guestGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  return auth.isAuthenticated() ? router.parseUrl(auth.homeRoute()) : true;
+};

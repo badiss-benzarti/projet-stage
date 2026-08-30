@@ -1,0 +1,92 @@
+<div class="flex min-h-screen flex-col bg-sand-50">
+
+  <header class="px-6 pt-10 sm:px-10">
+    <div class="mx-auto max-w-4xl">
+      <a routerLink="/" class="text-sm text-sand-500 transition-colors hover:text-sand-800">
+        ← Retour
+      </a>
+    </div>
+  </header>
+
+  <main class="flex flex-1 items-center px-6 py-10 sm:px-10">
+    <div class="mx-auto w-full max-w-4xl">
+
+      <div class="eyebrow">Création de compte</div>
+      <h1 class="mt-2 text-2xl font-medium text-sand-900 sm:text-3xl">Vous êtes…</h1>
+      <p class="mt-2 max-w-xl text-sm text-sand-500">
+        Votre profil détermine votre espace de travail et vos autorisations.
+      </p>
+
+      <div class="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        @for (type of types; track type.role) {
+
+          @if (type.ouvert) {
+            <a [routerLink]="['/inscription', type.role]"
+              class="group flex aspect-square flex-col rounded-[8px] border border-sand-300 bg-white p-5 transition-colors hover:border-petrol-500">
+              <span class="flex size-11 items-center justify-center rounded-[8px] bg-petrol-50 text-petrol-700 transition-colors group-hover:bg-petrol-100">
+                @switch (type.role) {
+                  @case ('ETUDIANT') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                      stroke-linecap="round" stroke-linejoin="round" class="size-6" aria-hidden="true">
+                      <path d="M22 9L12 4 2 9l10 5 10-5z" />
+                      <path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5" />
+                      <path d="M22 9v6" />
+                    </svg>
+                  }
+                  @case ('ENTREPRISE') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                      stroke-linecap="round" stroke-linejoin="round" class="size-6" aria-hidden="true">
+                      <path d="M3 21h18" />
+                      <path d="M5 21V6a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v15" />
+                      <path d="M14 10h4a1 1 0 0 1 1 1v10" />
+                      <path d="M8 8h3M8 12h3M8 16h3" />
+                    </svg>
+                  }
+                }
+              </span>
+
+              <h2 class="mt-4 font-medium text-sand-900">{{ type.libelle }}</h2>
+              <p class="mt-1 text-sm leading-snug text-sand-500">{{ type.description }}</p>
+
+              <span class="mt-auto text-sm font-medium text-petrol-700 group-hover:underline">
+                Continuer →
+              </span>
+            </a>
+          } @else {
+            <div class="flex aspect-square cursor-not-allowed flex-col rounded-[8px] border border-dashed border-sand-300 bg-sand-100/60 p-5">
+              <span class="flex size-11 items-center justify-center rounded-[8px] bg-sand-200 text-sand-400">
+                @switch (type.role) {
+                  @case ('ENCADRANT') {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                      stroke-linecap="round" stroke-linejoin="round" class="size-6" aria-hidden="true">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  }
+                  @default {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                      stroke-linecap="round" stroke-linejoin="round" class="size-6" aria-hidden="true">
+                      <rect x="3" y="11" width="18" height="10" rx="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  }
+                }
+              </span>
+
+              <h2 class="mt-4 font-medium text-sand-600">{{ type.libelle }}</h2>
+              <p class="mt-1 text-sm leading-snug text-sand-400">{{ type.description }}</p>
+
+              @if (type.note) {
+                <p class="mt-auto text-xs leading-snug text-sand-500">{{ type.note }}</p>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <p class="mt-8 text-sm text-sand-500">
+        Vous avez déjà un compte ?
+        <a routerLink="/connexion" class="text-petrol-700 underline underline-offset-2">Se connecter</a>
+      </p>
+    </div>
+  </main>
+</div>
