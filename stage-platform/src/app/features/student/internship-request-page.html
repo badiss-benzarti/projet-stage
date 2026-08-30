@@ -119,6 +119,41 @@
               Aucun partenaire référencé. Utilisez « Autre entreprise ».
             </p>
           }
+
+          @if (form.controls.companyId.value !== null) {
+            <div class="mt-5 border-t border-sand-100 pt-5">
+              <label for="requestedSupervisorId" class="mb-1.5 block text-sm font-medium text-sand-700">
+                Encadrant en entreprise
+              </label>
+              <p class="mb-2 text-xs text-sand-500">
+                Choisissez parmi les encadrants déclarés par cette entreprise.
+                C’est lui qui validera votre journal de stage.
+              </p>
+
+              @if (chargementEncadrants()) {
+                <p class="text-sm text-sand-500">Chargement des encadrants…</p>
+              } @else if (encadrants().length === 0) {
+                <p class="rounded-[5px] border border-warn-300/60 bg-warn-50 px-3 py-2.5 text-sm text-warn-800">
+                  Cette entreprise n’a encore déclaré aucun encadrant sur la plateforme.
+                  Signalez-le au service des stages, ou choisissez une autre entreprise.
+                </p>
+              } @else {
+                <select id="requestedSupervisorId" [disabled]="!modifiable()"
+                  (change)="choisirEncadrant($any($event.target).value)"
+                  class="w-full rounded-[6px] border border-sand-300 bg-white px-3 py-2.5 text-sm focus:border-petrol-500 focus:outline-none disabled:bg-sand-100">
+                  <option value="" [selected]="form.controls.requestedSupervisorId.value === null" disabled>
+                    Sélectionnez un encadrant…
+                  </option>
+                  @for (encadrant of encadrants(); track encadrant.id) {
+                    <option [value]="encadrant.id"
+                      [selected]="form.controls.requestedSupervisorId.value === encadrant.id">
+                      {{ encadrant.fullName }}@if (encadrant.position) { — {{ encadrant.position }} }
+                    </option>
+                  }
+                </select>
+              }
+            </div>
+          }
         } @else {
           <p class="mb-4 rounded-[5px] border border-petrol-300/50 bg-petrol-50 px-3 py-2 text-sm text-petrol-800">
             L’entreprise n’a pas de compte sur la plateforme : renseignez ses coordonnées.
@@ -151,40 +186,42 @@
       </div>
     </section>
 
-    <section class="rounded-[6px] border border-sand-200 bg-white">
-      <div class="border-b border-sand-100 px-6 py-4">
-        <p class="eyebrow">Contact de l’encadrant en entreprise</p>
-        <p class="mt-1 text-xs text-sand-500">
-          La personne qui vous suivra au quotidien et validera votre journal de stage.
-        </p>
-      </div>
+    @if (horsReferentiel()) {
+      <section class="rounded-[6px] border border-sand-200 bg-white">
+        <div class="border-b border-sand-100 px-6 py-4">
+          <p class="eyebrow">Contact de l’encadrant en entreprise</p>
+          <p class="mt-1 text-xs text-sand-500">
+            La personne qui vous suivra au quotidien et validera votre journal de stage.
+          </p>
+        </div>
 
-      <div class="grid gap-4 px-6 py-6 sm:grid-cols-2">
-        <div class="sm:col-span-2">
-          <label for="contactName" class="mb-1.5 block text-sm font-medium text-sand-700">Nom et prénom</label>
-          <input id="contactName" formControlName="contactName" placeholder="Youssef Gharbi"
-            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
-          @if (form.controls.contactName.touched && form.controls.contactName.invalid) {
-            <p class="mt-1.5 text-xs text-bad-500">Le contact de l’encadrant est obligatoire.</p>
-          }
+        <div class="grid gap-4 px-6 py-6 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <label for="contactName" class="mb-1.5 block text-sm font-medium text-sand-700">Nom et prénom</label>
+            <input id="contactName" formControlName="contactName" placeholder="Youssef Gharbi"
+              class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+            @if (form.controls.contactName.touched && form.controls.contactName.invalid) {
+              <p class="mt-1.5 text-xs text-bad-500">Le contact de l’encadrant est obligatoire.</p>
+            }
+          </div>
+          <div>
+            <label for="contactEmail" class="mb-1.5 block text-sm font-medium text-sand-700">Email</label>
+            <input id="contactEmail" type="email" formControlName="contactEmail" placeholder="encadrant@entreprise.tn"
+              class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+            @if (form.controls.contactEmail.touched && form.controls.contactEmail.invalid) {
+              <p class="mt-1.5 text-xs text-bad-500">Email valide obligatoire.</p>
+            }
+          </div>
+          <div>
+            <label for="contactPhone" class="mb-1.5 block text-sm font-medium text-sand-700">
+              Téléphone <span class="font-normal text-sand-400">— facultatif</span>
+            </label>
+            <input id="contactPhone" formControlName="contactPhone" placeholder="98 765 432"
+              class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
+          </div>
         </div>
-        <div>
-          <label for="contactEmail" class="mb-1.5 block text-sm font-medium text-sand-700">Email</label>
-          <input id="contactEmail" type="email" formControlName="contactEmail" placeholder="encadrant@entreprise.tn"
-            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
-          @if (form.controls.contactEmail.touched && form.controls.contactEmail.invalid) {
-            <p class="mt-1.5 text-xs text-bad-500">Email valide obligatoire.</p>
-          }
-        </div>
-        <div>
-          <label for="contactPhone" class="mb-1.5 block text-sm font-medium text-sand-700">
-            Téléphone <span class="font-normal text-sand-400">— facultatif</span>
-          </label>
-          <input id="contactPhone" formControlName="contactPhone" placeholder="98 765 432"
-            class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none disabled:bg-sand-100" />
-        </div>
-      </div>
-    </section>
+      </section>
+    }
 
     <section class="rounded-[6px] border border-sand-200 bg-white">
       <div class="border-b border-sand-100 px-6 py-4">

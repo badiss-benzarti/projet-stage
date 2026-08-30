@@ -4,18 +4,18 @@ import { RouterLink } from '@angular/router';
 
 import { Internship } from '../../core/models/internship.models';
 import { InternshipService } from '../../core/services/internship.service';
-import { Company, UserService } from '../../core/services/user.service';
+import { Company, SupervisorOption, UserService } from '../../core/services/user.service';
 import { Spinner } from '../../shared/spinner';
 import { StatusBadge } from '../../shared/status-badge';
 
 /**
  * Depot et modification de la demande de stage.
  *
- * L'entreprise d'accueil peut etre choisie dans le referentiel des
- * partenaires, ou saisie librement : un etudiant trouve souvent son
- * stage dans une structure qui n'a aucun compte sur la plateforme.
- * Le cahier des charges exige ce remplissage libre, ainsi que le
- * contact de l'encadrant.
+ * Deux chemins. Entreprise inscrite : l'etudiant la choisit dans le
+ * referentiel, puis designe son encadrant parmi ceux que cette entreprise
+ * a declares. Entreprise sans compte : saisie libre des coordonnees et du
+ * contact de l'encadrant, le cahier des charges exigeant de couvrir le cas
+ * d'un stage trouve dans une structure qui n'a aucun compte chez nous.
  */
 @Component({
   selector: 'gs-internship-request-page',
@@ -35,6 +35,8 @@ export class InternshipRequestPage {
 
   protected readonly dossier = signal<Internship | null>(null);
   protected readonly entreprises = signal<readonly Company[]>([]);
+  protected readonly encadrants = signal<readonly SupervisorOption[]>([]);
+  protected readonly chargementEncadrants = signal(false);
   /** Vrai quand l'etudiant saisit une entreprise hors referentiel. */
   protected readonly horsReferentiel = signal(false);
 
@@ -52,13 +54,16 @@ export class InternshipRequestPage {
     academicYear: [this.anneesUniversitaires[0], Validators.required],
 
     companyId: [null as number | null],
+    requestedSupervisorId: [null as number | null],
     companyName: [''],
     companyAddress: [''],
     companyEmail: ['', Validators.email],
     companyPhone: [''],
 
-    contactName: ['', Validators.required],
-    contactEmail: ['', [Validators.required, Validators.email]],
+    // Obligatoires uniquement hors referentiel : quand l'entreprise est
+    // inscrite, l'encadrant est un compte declare, pas un contact saisi.
+    contactName: [''],
+    contactEmail: ['', Validators.email],
     contactPhone: [''],
 
     startDate: ['', Validators.required],
@@ -67,6 +72,29 @@ export class InternshipRequestPage {
 
   constructor() {
     this.charger();
+    this.appliquerValidateursContact();
+  }
+
+  /**
+   * Le contact en entreprise n'est exige que hors referentiel.
+   *
+   * Sur le chemin partenaire, l'encadrant est un compte declare par
+   * l'entreprise : redemander son nom et son email n'apporterait qu'une
+   * seconde verite, potentiellement contradictoire.
+   */
+  private appliquerValidateursContact(): void {
+    const nom = this.form.controls.contactName;
+    const email = this.form.controls.contactEmail;
+
+    if (this.horsReferentiel()) {
+      nom.setValidators([Validators.required]);
+      email.setValidators([Validators.required, Validators.email]);
+    } else {
+      nom.setValidators([]);
+      email.setValidators([Validators.email]);
+    }
+    nom.updateValueAndValidity({ emitEvent: false });
+    email.updateValueAndValidity({ emitEvent: false });
   }
 
   private charger(): void {
@@ -93,6 +121,9 @@ export class InternshipRequestPage {
 
   private remplir(d: Internship): void {
     this.horsReferentiel.set(d.companyId === null);
+    if (d.companyId !== null) {
+      this.chargerEncadrants(d.companyId);
+    }
     this.form.patchValue({
       type: d.type,
       title: d.title,
@@ -106,9 +137,11 @@ export class InternshipRequestPage {
       contactName: d.contactName ?? '',
       contactEmail: d.contactEmail ?? '',
       contactPhone: d.contactPhone ?? '',
+      requestedSupervisorId: d.requestedSupervisorId,
       startDate: d.startDate ?? '',
       endDate: d.endDate ?? '',
     });
+    this.appliquerValidateursContact();
     if (d.status !== 'DRAFT') {
       this.form.disable();
     }
@@ -119,13 +152,18 @@ export class InternshipRequestPage {
     this.horsReferentiel.set(hors);
     this.erreur.set(null);
     if (hors) {
-      this.form.patchValue({ companyId: null });
+      this.form.patchValue({ companyId: null, requestedSupervisorId: null });
+      this.encadrants.set([]);
     } else {
       this.form.patchValue({ companyAddress: '', companyEmail: '', companyPhone: '' });
     }
+    this.appliquerValidateursContact();
   }
 
-  /** Recopie les coordonnees du partenaire choisi, pour information. */
+  /**
+   * Recopie les coordonnees du partenaire choisi, puis recharge la liste
+   * de ses encadrants : celle du partenaire precedent n'a plus de sens.
+   */
   protected choisirPartenaire(id: string): void {
     const identifiant = Number(id);
     const partenaire = this.entreprises().find((c) => c.id === identifiant);
@@ -135,6 +173,27 @@ export class InternshipRequestPage {
       companyAddress: partenaire?.address ?? '',
       companyEmail: partenaire?.email ?? '',
       companyPhone: partenaire?.phone ?? '',
+      requestedSupervisorId: null,
+    });
+    this.chargerEncadrants(identifiant);
+  }
+
+  protected choisirEncadrant(id: string): void {
+    this.form.patchValue({ requestedSupervisorId: id ? Number(id) : null });
+    this.erreur.set(null);
+  }
+
+  private chargerEncadrants(companyId: number): void {
+    this.chargementEncadrants.set(true);
+    this.users.supervisorOptionsOf(companyId).subscribe({
+      next: (liste) => {
+        this.encadrants.set(liste);
+        this.chargementEncadrants.set(false);
+      },
+      error: () => {
+        this.encadrants.set([]);
+        this.chargementEncadrants.set(false);
+      },
     });
   }
 
@@ -157,6 +216,14 @@ export class InternshipRequestPage {
       this.erreur.set('Renseignez le nom de l’entreprise d’accueil.');
       return;
     }
+    if (!this.horsReferentiel() && v.requestedSupervisorId === null) {
+      this.erreur.set(
+        this.encadrants().length === 0
+          ? 'Cette entreprise n’a déclaré aucun encadrant. Contactez le service des stages.'
+          : 'Choisissez l’encadrant qui vous suivra dans l’entreprise.',
+      );
+      return;
+    }
 
     const demande = {
       type: v.type,
@@ -171,6 +238,7 @@ export class InternshipRequestPage {
       contactName: v.contactName.trim() || null,
       contactEmail: v.contactEmail.trim() || null,
       contactPhone: v.contactPhone.trim() || null,
+      requestedSupervisorId: this.horsReferentiel() ? null : v.requestedSupervisorId,
       startDate: v.startDate || null,
       endDate: v.endDate || null,
     };

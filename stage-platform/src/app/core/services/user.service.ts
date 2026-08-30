@@ -65,6 +65,19 @@ export interface Supervisor {
   readonly companyName: string;
 }
 
+/**
+ * Encadrant tel que le voit un etudiant qui depose sa demande.
+ *
+ * Ni email ni telephone : le backend ne les sert pas a ce role, pour ne
+ * pas faire de la liste des partenaires un annuaire moissonnable.
+ */
+export interface SupervisorOption {
+  readonly id: number;
+  readonly fullName: string;
+  readonly position: string | null;
+  readonly companyId: number;
+}
+
 /** Profils : etudiants, entreprises, encadrants. */
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -101,6 +114,13 @@ export class UserService {
     return this.http.get(`${this.base}/students/${studentId}/photo`, {
       responseType: 'blob',
     });
+  }
+
+  /** Encadrants declares par une entreprise, proposables a un etudiant. */
+  supervisorOptionsOf(companyId: number): Observable<readonly SupervisorOption[]> {
+    return this.http.get<readonly SupervisorOption[]>(
+      `${this.base}/companies/${companyId}/supervisors/options`,
+    );
   }
 
   /** Gouvernorats et types d'etablissement, servis par le backend. */

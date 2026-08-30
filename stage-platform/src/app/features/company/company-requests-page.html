@@ -26,6 +26,11 @@
               {{ dossier.type === 'PFE' ? 'PFE' : 'Stage d’été' }} ·
               {{ dossier.startDate }} → {{ dossier.endDate }}
             </p>
+            @if (dossier.requestedSupervisorName) {
+              <p class="mt-2 inline-flex items-center gap-1.5 rounded-[4px] bg-petrol-50 px-2 py-1 text-xs text-petrol-800">
+                Encadrant souhaité par l’étudiant : {{ dossier.requestedSupervisorName }}
+              </p>
+            }
           </div>
           <gs-status-badge [status]="dossier.status" />
         </div>
@@ -41,6 +46,11 @@
             <label [for]="'enc-' + dossier.id" class="mb-1.5 block text-sm font-medium text-sand-700">
               Encadrant désigné
             </label>
+            @if (dossier.requestedSupervisorName) {
+              <p class="mb-2 text-xs text-sand-500">
+                Pré-rempli avec le choix de l’étudiant. Vous pouvez désigner quelqu’un d’autre.
+              </p>
+            }
             @if (encadrants().length === 0) {
               <p class="rounded-[5px] border border-warn-500/25 bg-warn-50 px-3 py-2 text-sm text-warn-700">
                 Aucun encadrant déclaré. Ajoutez-en un depuis la page « Encadrants » avant d’accepter.
@@ -50,7 +60,7 @@
                 (change)="choisirEncadrant($any($event.target).value)"
                 class="w-full max-w-sm rounded-[6px] border border-sand-300 bg-white px-3 py-2 text-sm focus:border-petrol-500 focus:outline-none">
                 @for (encadrant of encadrants(); track encadrant.id) {
-                  <option [value]="encadrant.id">
+                  <option [value]="encadrant.id" [selected]="encadrantChoisi() === encadrant.id">
                     {{ encadrant.firstName }} {{ encadrant.lastName }}
                     @if (encadrant.position) { — {{ encadrant.position }} }
                   </option>
