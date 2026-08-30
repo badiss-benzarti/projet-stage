@@ -67,6 +67,28 @@ public class SupervisorService {
                 .toList();
     }
 
+    /**
+     * Liste detaillee : reservee a l'entreprise proprietaire et a
+     * l'administration. Sans ce controle, n'importe quelle entreprise
+     * inscrite lirait les coordonnees des encadrants de ses concurrentes.
+     */
+    @Transactional(readOnly = true)
+    public List<SupervisorDto.Response> findByCompanyForViewer(AuthenticatedUser me, Long companyId) {
+        if ("ENTREPRISE".equals(me.role()) && !companies.entityOfOwner(me).getId().equals(companyId)) {
+            throw new ApiExceptions.ForbiddenException(
+                    "Vous ne pouvez consulter que les encadrants de votre entreprise");
+        }
+        return findByCompany(companyId);
+    }
+
+    /** Liste allegee, servie a l'etudiant qui depose sa demande de stage. */
+    @Transactional(readOnly = true)
+    public List<SupervisorDto.Option> findOptionsByCompany(Long companyId) {
+        return supervisors.findByCompanyId(companyId).stream()
+                .map(SupervisorDto.Option::from)
+                .toList();
+    }
+
     /** Une entreprise ne peut retirer qu'un encadrant qui lui appartient. */
     @Transactional
     public void deleteFromOwnCompany(AuthenticatedUser me, Long supervisorId) {
