@@ -69,3 +69,6 @@ exports-demo/
 ### Modele entraine (regenere au build de l image) ###
 ml-service/model/*.pkl
 ml-service/model/metrics.json
+
+### Photos de profil (volume Docker en production) ###
+user-service/photos/

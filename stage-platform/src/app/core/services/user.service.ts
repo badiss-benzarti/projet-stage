@@ -15,6 +15,8 @@ export interface Company {
   readonly supervisorCount: number;
 }
 
+export type InstitutionType = 'PUBLIQUE' | 'PRIVEE';
+
 export interface StudentProfile {
   readonly id: number;
   readonly userId: number;
@@ -25,6 +27,30 @@ export interface StudentProfile {
   readonly cin: string | null;
   readonly classe: string;
   readonly departement: string;
+  readonly institutionName: string | null;
+  readonly institutionType: InstitutionType | null;
+  readonly academicLevel: number | null;
+  readonly address: string | null;
+  readonly city: string | null;
+  readonly governorate: string | null;
+  readonly governorateLabel: string | null;
+  readonly hasPhoto: boolean;
+}
+
+/** Ce que le formulaire envoie : le profil sans ses champs calcules. */
+export type StudentProfileRequest = Omit<
+  StudentProfile,
+  'id' | 'userId' | 'governorateLabel' | 'hasPhoto'
+>;
+
+export interface Option {
+  readonly value: string;
+  readonly label: string;
+}
+
+export interface Referentiels {
+  readonly gouvernorats: readonly Option[];
+  readonly typesEtablissement: readonly Option[];
 }
 
 export interface Supervisor {
@@ -49,12 +75,37 @@ export class UserService {
     return this.http.get<StudentProfile>(`${this.base}/students/me`);
   }
 
-  saveMyStudentProfile(profil: Omit<StudentProfile, 'id' | 'userId'>): Observable<StudentProfile> {
+  saveMyStudentProfile(profil: StudentProfileRequest): Observable<StudentProfile> {
     return this.http.post<StudentProfile>(`${this.base}/students/me`, profil);
   }
 
-  updateMyStudentProfile(profil: Omit<StudentProfile, 'id' | 'userId'>): Observable<StudentProfile> {
+  updateMyStudentProfile(profil: StudentProfileRequest): Observable<StudentProfile> {
     return this.http.put<StudentProfile>(`${this.base}/students/me`, profil);
+  }
+
+  /** Photo de profil : multipart, remplace la precedente. */
+  uploadMyPhoto(fichier: File): Observable<StudentProfile> {
+    const corps = new FormData();
+    corps.append('file', fichier);
+    return this.http.post<StudentProfile>(`${this.base}/students/me/photo`, corps);
+  }
+
+  /**
+   * Photo d'un etudiant, recuperee en blob.
+   *
+   * Une balise img ne porte pas l'en-tete Authorization : ouvrir
+   * l'endpoint rendrait toutes les photos lisibles par simple increment
+   * d'identifiant. On passe donc par HttpClient, puis par une URL objet.
+   */
+  photoBlob(studentId: number): Observable<Blob> {
+    return this.http.get(`${this.base}/students/${studentId}/photo`, {
+      responseType: 'blob',
+    });
+  }
+
+  /** Gouvernorats et types d'etablissement, servis par le backend. */
+  referentiels(): Observable<Referentiels> {
+    return this.http.get<Referentiels>(`${this.base}/students/referentiels`);
   }
 
   companies(): Observable<Page<Company>> {

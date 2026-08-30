@@ -19,6 +19,13 @@ public final class ApiExceptions {
         }
     }
 
+    /** 400 : la regle metier interdit l'operation. */
+    public static class BusinessRuleException extends RuntimeException {
+        public BusinessRuleException(String message) {
+            super(message);
+        }
+    }
+
     /** 403 : la ressource appartient a quelqu'un d'autre. */
     public static class ForbiddenException extends RuntimeException {
         public ForbiddenException(String message) {

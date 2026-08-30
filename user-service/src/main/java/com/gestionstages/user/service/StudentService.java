@@ -4,6 +4,7 @@ import com.gestionstages.user.dto.StudentDto;
 import com.gestionstages.user.entity.Student;
 import com.gestionstages.user.exception.ApiExceptions;
 import com.gestionstages.user.repository.StudentRepository;
+import org.springframework.web.multipart.MultipartFile;
 import com.gestionstages.user.security.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StudentService {
 
     private final StudentRepository students;
+    private final PhotoStorageService photos;
 
     /** Cree le profil du porteur du jeton : un etudiant ne peut creer que le sien. */
     @Transactional
@@ -32,6 +34,12 @@ public class StudentService {
                 .cin(blankToNull(req.cin()))
                 .classe(req.classe().toUpperCase())
                 .departement(req.departement())
+                .institutionName(blankToNull(req.institutionName()))
+                .institutionType(req.institutionType())
+                .academicLevel(req.academicLevel())
+                .address(blankToNull(req.address()))
+                .city(blankToNull(req.city()))
+                .governorate(req.governorate())
                 .build();
         return StudentDto.Response.from(students.save(s));
     }
@@ -76,9 +84,42 @@ public class StudentService {
         s.setCin(blankToNull(req.cin()));
         s.setClasse(req.classe().toUpperCase());
         s.setDepartement(req.departement());
+        s.setInstitutionName(blankToNull(req.institutionName()));
+        s.setInstitutionType(req.institutionType());
+        s.setAcademicLevel(req.academicLevel());
+        s.setAddress(blankToNull(req.address()));
+        s.setCity(blankToNull(req.city()));
+        s.setGovernorate(req.governorate());
 
         return StudentDto.Response.from(s);
     }
+
+    /** Remplace la photo du porteur du jeton ; l'ancienne est supprimee. */
+    @Transactional
+    public StudentDto.Response savePhoto(AuthenticatedUser me, MultipartFile fichier) {
+        Student s = students.findByUserId(me.id())
+                .orElseThrow(() -> new ApiExceptions.NotFoundException("Profil etudiant", me.email()));
+
+        String ancienne = s.getPhotoName();
+        s.setPhotoName(photos.store(fichier));
+        s.setPhotoContentType(fichier.getContentType());
+        photos.delete(ancienne);
+
+        return StudentDto.Response.from(s);
+    }
+
+    /** Contenu de la photo, avec son type MIME. */
+    @Transactional(readOnly = true)
+    public Photo photo(Long studentId) {
+        Student s = students.findById(studentId)
+                .orElseThrow(() -> new ApiExceptions.NotFoundException("Etudiant", studentId));
+        if (s.getPhotoName() == null) {
+            throw new ApiExceptions.NotFoundException("Photo de l'etudiant", studentId);
+        }
+        return new Photo(photos.read(s.getPhotoName()), s.getPhotoContentType());
+    }
+
+    public record Photo(byte[] contenu, String contentType) {}
 
     private String blankToNull(String v) {
         return (v == null || v.isBlank()) ? null : v;

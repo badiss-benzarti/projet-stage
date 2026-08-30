@@ -37,6 +37,12 @@ public class GlobalExceptionHandler {
                 .body(base(HttpStatus.CONFLICT, ex.getMessage()));
     }
 
+    @ExceptionHandler(ApiExceptions.BusinessRuleException.class)
+    public ResponseEntity<Map<String, Object>> onBusinessRule(RuntimeException ex) {
+        return ResponseEntity.badRequest()
+                .body(base(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    }
+
     @ExceptionHandler(ApiExceptions.ForbiddenException.class)
     public ResponseEntity<Map<String, Object>> onForbidden(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)

@@ -34,6 +34,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/account-type-page').then((m) => m.AccountTypePage),
   },
   {
+    path: 'inscription/ETUDIANT',
+    canActivate: [guestGuard],
+    title: 'Créer un compte étudiant',
+    loadComponent: () =>
+      import('./features/auth/student-register-page').then((m) => m.StudentRegisterPage),
+  },
+  {
     path: 'inscription/:role',
     canActivate: [guestGuard],
     title: 'Créer un compte',

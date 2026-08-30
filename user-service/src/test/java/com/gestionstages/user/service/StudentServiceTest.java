@@ -2,6 +2,8 @@ package com.gestionstages.user.service;
 
 import com.gestionstages.user.dto.StudentDto;
 import com.gestionstages.user.entity.Student;
+import com.gestionstages.user.enums.Governorate;
+import com.gestionstages.user.enums.InstitutionType;
 import com.gestionstages.user.exception.ApiExceptions;
 import com.gestionstages.user.repository.StudentRepository;
 import com.gestionstages.user.security.AuthenticatedUser;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.*;
 class StudentServiceTest {
 
     @Mock StudentRepository students;
+    @Mock PhotoStorageService photos;
     @InjectMocks StudentService service;
 
     private static final AuthenticatedUser MOI =
@@ -32,7 +35,9 @@ class StudentServiceTest {
 
     private static final StudentDto.Request DEMANDE = new StudentDto.Request(
             "Ahmed", "Ben Salah", "Ahmed@Esprit.TN", "20123456", "12345678",
-            "4sae3", "Genie Logiciel");
+            "4sae3", "Genie Logiciel",
+            "ESPRIT", InstitutionType.PRIVEE, 4,
+            "Rue du Lac", "Tunis", Governorate.TUNIS);
 
     @Test
     @DisplayName("un etudiant ne peut pas creer deux profils")

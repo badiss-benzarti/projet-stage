@@ -7,3 +7,10 @@ spring:
     username: ${DB_USER:root}
     password: ${DB_PASS:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+app:
+  # Photos de profil des etudiants. Volume Docker en production.
+  photos:
+    location: ${PHOTOS_PATH:./photos}
+    allowed-types: image/jpeg,image/png,image/webp
+    max-size-bytes: 2097152

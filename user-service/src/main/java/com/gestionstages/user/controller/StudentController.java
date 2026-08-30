@@ -11,7 +11,17 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.gestionstages.user.enums.Governorate;
+import com.gestionstages.user.enums.InstitutionType;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Profils etudiants.
@@ -61,5 +71,43 @@ public class StudentController {
     @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','CHEF_DEPARTEMENT_PEDAGOGIQUE','ENCADRANT','ADMIN')")
     public StudentDto.Response byId(@PathVariable Long id) {
         return students.findById(id);
+    }
+
+    // ---- Photo de profil ----
+
+    @PostMapping(value = "/me/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ETUDIANT')")
+    public StudentDto.Response savePhoto(@AuthenticationPrincipal AuthenticatedUser me,
+                                         @RequestParam("file") MultipartFile file) {
+        return students.savePhoto(me, file);
+    }
+
+    /**
+     * Photo d'un etudiant. Non protegee par un role : elle est affichee
+     * dans les listes vues par l'encadrant et les departements, et ne
+     * revele rien de plus que le nom deja present dans ces listes.
+     */
+    @GetMapping("/{id}/photo")
+    public ResponseEntity<ByteArrayResource> photo(@PathVariable Long id) {
+        var photo = students.photo(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        photo.contentType() == null ? "image/jpeg" : photo.contentType()))
+                .contentLength(photo.contenu().length)
+                .body(new ByteArrayResource(photo.contenu()));
+    }
+
+    // ---- Referentiels, pour alimenter les listes du frontend ----
+
+    @GetMapping("/referentiels")
+    public java.util.Map<String, List<StudentDto.Option>> referentiels() {
+        return java.util.Map.of(
+                "gouvernorats", Arrays.stream(Governorate.values())
+                        .map(g -> new StudentDto.Option(g.name(), g.libelle()))
+                        .toList(),
+                "typesEtablissement", Arrays.stream(InstitutionType.values())
+                        .map(t -> new StudentDto.Option(t.name(),
+                                t == InstitutionType.PUBLIQUE ? "Publique / étatique" : "Privée"))
+                        .toList());
     }
 }

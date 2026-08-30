@@ -1,5 +1,7 @@
 package com.gestionstages.user.entity;
 
+import com.gestionstages.user.enums.Governorate;
+import com.gestionstages.user.enums.InstitutionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -50,6 +52,43 @@ public class Student {
 
     @Column(nullable = false, length = 80)
     private String departement;
+
+    // ---- Etablissement d'origine ----
+
+    @Column(name = "institution_name", length = 150)
+    private String institutionName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "institution_type", length = 20)
+    private InstitutionType institutionType;
+
+    /** Niveau d'etudes exprime en annees apres le baccalaureat. */
+    @Column(name = "academic_level")
+    private Integer academicLevel;
+
+    // ---- Adresse ----
+
+    @Column(length = 255)
+    private String address;
+
+    @Column(length = 80)
+    private String city;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private Governorate governorate;
+
+    // ---- Photo ----
+
+    /**
+     * Nom du fichier sur disque, jamais le nom d'origine : celui-ci
+     * permettrait d'ecrire hors du repertoire de stockage.
+     */
+    @Column(name = "photo_name", length = 120)
+    private String photoName;
+
+    @Column(name = "photo_content_type", length = 100)
+    private String photoContentType;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
