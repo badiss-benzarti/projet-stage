@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { Option, UserService } from '../../core/services/user.service';
+import { SessionNotice } from '../../shared/session-notice';
 
 /**
  * Inscription d'un etudiant, en deux temps.
@@ -19,7 +20,7 @@ import { Option, UserService } from '../../core/services/user.service';
 @Component({
   selector: 'gs-student-register-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, SessionNotice],
   templateUrl: './student-register-page.html',
 })
 export class StudentRegisterPage {

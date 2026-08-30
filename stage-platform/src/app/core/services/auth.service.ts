@@ -33,7 +33,12 @@ export class AuthService {
   readonly currentUser = this._user.asReadonly();
   readonly token = this._token.asReadonly();
 
-  readonly isAuthenticated = computed(() => this._token() !== null);
+  /**
+   * Un jeton sans utilisateur est une session corrompue : le stockage a
+   * ete vide a moitie, ou le format a change. On la considere absente
+   * plutot que de laisser l'application rebondir entre les gardes.
+   */
+  readonly isAuthenticated = computed(() => this._token() !== null && this._user() !== null);
   readonly role = computed<Role | null>(() => this._user()?.role ?? null);
   readonly fullName = computed(() => {
     const u = this._user();
@@ -51,17 +56,31 @@ export class AuthService {
   }
 
   register(demande: RegisterRequest): Observable<AuthResponse> {
+    // Une session ouverte ne doit pas accompagner l'inscription : le
+    // nouveau compte remplace l'ancien de toute facon.
+    this.clearSession();
     return this.http
       .post<AuthResponse>('/api/auth/register', demande)
       .pipe(tap((r) => this.enregistrerSession(r)));
   }
 
   logout(): void {
+    this.clearSession();
+    void this.router.navigate(['/connexion']);
+  }
+
+  /**
+   * Vide la session sans naviguer.
+   *
+   * Utilise avant une inscription : creer un compte connecte au nouveau,
+   * il ne faut pas que l'ancien jeton parte avec la requete ni qu'une
+   * redirection interrompe le parcours.
+   */
+  clearSession(): void {
     localStorage.removeItem(CLE_JETON);
     localStorage.removeItem(CLE_UTILISATEUR);
     this._token.set(null);
     this._user.set(null);
-    void this.router.navigate(['/connexion']);
   }
 
   /** Accueil correspondant au role, utilise apres connexion. */

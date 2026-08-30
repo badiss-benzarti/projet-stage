@@ -25,7 +25,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(requete).pipe(
     catchError((erreur: HttpErrorResponse) => {
-      if (erreur.status === 401 && !req.url.includes('/api/auth/login')) {
+      // Les endpoints publics d'authentification portent leurs propres
+      // erreurs : un 401 y signifie "identifiants refuses", pas "session
+      // expiree". Les traiter comme telle deconnecterait l'utilisateur au
+      // moment ou il essaie justement de s'identifier.
+      const publique =
+        req.url.includes('/api/auth/login') || req.url.includes('/api/auth/register');
+
+      if (erreur.status === 401 && !publique) {
         auth.logout();
         void router.navigate(['/connexion']);
       }

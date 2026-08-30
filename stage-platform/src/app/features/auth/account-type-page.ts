@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { Role } from '../../core/models/auth.models';
+import { SessionNotice } from '../../shared/session-notice';
 
 interface TypeCompte {
   readonly role: Role;
@@ -22,7 +23,7 @@ interface TypeCompte {
 @Component({
   selector: 'gs-account-type-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, SessionNotice],
   templateUrl: './account-type-page.html',
 })
 export class AccountTypePage {

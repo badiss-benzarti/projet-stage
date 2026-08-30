@@ -36,10 +36,11 @@ export const roleGuard = (...roles: readonly Role[]): CanActivateFn => {
 };
 
 /**
- * Reserve une page aux visiteurs non connectes.
+ * Renvoie un utilisateur deja connecte vers son espace.
  *
- * Un utilisateur deja authentifie qui revient sur l'accueil est renvoye
- * vers son espace : lui reproposer de se connecter n'aurait pas de sens.
+ * Pose uniquement sur l'accueil : lui reproposer de se connecter n'aurait
+ * pas de sens. Les pages d'inscription, elles, restent accessibles — on
+ * y previent simplement que continuer fermera la session en cours.
  */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
