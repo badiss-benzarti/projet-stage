@@ -82,6 +82,8 @@ public class InternshipService {
                 .status(DRAFT)
                 .build();
 
+        applyRequestedSupervisor(i, req);
+
         internships.save(i);
         log.info("Brouillon de stage cree : {} (etudiant {})", i.getId(), student.id());
 
@@ -113,10 +115,44 @@ public class InternshipService {
         i.setContactName(req.contactName());
         i.setContactEmail(req.contactEmail());
         i.setContactPhone(req.contactPhone());
+        applyRequestedSupervisor(i, req);
         i.setStartDate(req.startDate());
         i.setEndDate(req.endDate());
 
         return detail(i, me);
+    }
+
+    /**
+     * Enregistre l'encadrant pressenti par l'etudiant.
+     *
+     * L'identifiant vient du navigateur : rien ne garantit qu'il designe un
+     * encadrant de l'entreprise choisie. On le confronte donc a la liste que
+     * user-service tient pour cette entreprise, et on recopie le nom depuis
+     * cette source plutot que depuis la requete.
+     */
+    private void applyRequestedSupervisor(Internship i, InternshipDto.Request req) {
+        if (req.requestedSupervisorId() == null) {
+            i.setRequestedSupervisorId(null);
+            i.setRequestedSupervisorName(null);
+            return;
+        }
+        if (req.companyId() == null) {
+            throw new ApiExceptions.BusinessRuleException(
+                    "Un encadrant ne peut etre designe que pour une entreprise inscrite sur la plateforme");
+        }
+        UserClient.SupervisorOption encadrant =
+                resolveSupervisorOfCompany(req.companyId(), req.requestedSupervisorId());
+        i.setRequestedSupervisorId(encadrant.id());
+        i.setRequestedSupervisorName(encadrant.fullName());
+    }
+
+    /** Verifie qu'un encadrant appartient bien a l'entreprise d'accueil. */
+    private UserClient.SupervisorOption resolveSupervisorOfCompany(Long companyId, Long supervisorId) {
+        return lookup.supervisorOptions(companyId).stream()
+                .filter(o -> supervisorId.equals(o.id()))
+                .findFirst()
+                .orElseThrow(() -> new ApiExceptions.BusinessRuleException(
+                        "Cet encadrant n'est pas declare par l'entreprise d'accueil"));
     }
 
     @Transactional
@@ -235,33 +271,55 @@ public class InternshipService {
     private void applyBusinessEffects(Internship i, InternshipDto.TransitionRequest req) {
         switch (req.target()) {
             case SUBMITTED -> {
-                // L'entreprise d'accueil n'a pas forcement de compte sur la
-                // plateforme : un etudiant trouve souvent son stage dans une
-                // structure qui n'y est pas referencee. On exige donc les
-                // informations, pas un identifiant.
+                // Deux chemins, deux jeux d'exigences.
+                //
+                // Entreprise inscrite : l'encadrant est un compte declare par
+                // elle, choisi dans une liste. Entreprise sans compte : elle
+                // n'a aucun encadrant a proposer, on se rabat sur le contact
+                // saisi librement. Le cahier des charges impose de couvrir ce
+                // second cas, un etudiant trouvant souvent son stage dans une
+                // structure qui n'est pas referencee chez nous.
                 if (estVide(i.getCompanyName())) {
                     throw new ApiExceptions.BusinessRuleException(
                             "Renseignez l'entreprise d'accueil avant de soumettre");
                 }
-                if (estVide(i.getCompanyEmail()) && i.getCompanyId() == null) {
-                    throw new ApiExceptions.BusinessRuleException(
-                            "Renseignez l'email de l'entreprise d'accueil");
-                }
-                if (estVide(i.getContactName())) {
-                    throw new ApiExceptions.BusinessRuleException(
-                            "Renseignez le contact de l'encadrant en entreprise");
+                if (i.getCompanyId() != null) {
+                    if (i.getRequestedSupervisorId() == null) {
+                        throw new ApiExceptions.BusinessRuleException(
+                                "Choisissez l'encadrant qui vous suivra, parmi ceux declares par l'entreprise");
+                    }
+                } else {
+                    if (estVide(i.getCompanyEmail())) {
+                        throw new ApiExceptions.BusinessRuleException(
+                                "Renseignez l'email de l'entreprise d'accueil");
+                    }
+                    if (estVide(i.getContactName())) {
+                        throw new ApiExceptions.BusinessRuleException(
+                                "Renseignez le contact de l'encadrant en entreprise");
+                    }
                 }
                 i.setSubmittedAt(Instant.now());
             }
             case REJECTED, REFUSED -> i.setRejectionReason(req.comment());
             case ACCEPTED -> {
-                // Deux cas. Entreprise partenaire : elle designe un de ses
-                // encadrants, identifie par son id. Entreprise sans compte :
-                // le service des stages enregistre la reponse, et l'encadrant
-                // n'est connu que par le contact saisi sur la demande.
-                if (req.supervisorId() != null) {
-                    i.setSupervisorId(req.supervisorId());
-                    i.setSupervisorName(req.supervisorName());
+                // Trois cas, dans cet ordre.
+                //
+                // 1. L'entreprise designe explicitement un encadrant : son
+                //    choix prime, mais on verifie qu'il lui appartient - sans
+                //    ce controle, elle pourrait ouvrir le dossier a un
+                //    encadrant d'une autre societe.
+                // 2. Elle ne designe personne alors que l'etudiant avait fait
+                //    une proposition : accepter vaut confirmation.
+                // 3. Entreprise sans compte : le service des stages enregistre
+                //    la reponse, l'encadrant n'est connu que par son nom.
+                if (req.supervisorId() != null && i.getCompanyId() != null) {
+                    UserClient.SupervisorOption encadrant =
+                            resolveSupervisorOfCompany(i.getCompanyId(), req.supervisorId());
+                    i.setSupervisorId(encadrant.id());
+                    i.setSupervisorName(encadrant.fullName());
+                } else if (i.getRequestedSupervisorId() != null) {
+                    i.setSupervisorId(i.getRequestedSupervisorId());
+                    i.setSupervisorName(i.getRequestedSupervisorName());
                 } else {
                     String nom = !estVide(req.supervisorName())
                             ? req.supervisorName()

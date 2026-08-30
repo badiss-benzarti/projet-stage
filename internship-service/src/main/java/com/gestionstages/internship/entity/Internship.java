@@ -86,7 +86,18 @@ public class Internship {
     @Column(name = "contact_phone", length = 30)
     private String contactPhone;
 
-    // ---- Encadrant, designe par l'entreprise a l'acceptation ----
+    // ---- Encadrant propose par l'etudiant a la demande ----
+    // Distinct de l'encadrant confirme : tant que l'entreprise n'a pas
+    // accepte, la personne pressentie ne doit avoir aucun acces au dossier.
+    // Confondre les deux champs ouvrirait le journal de stage a un encadrant
+    // qui n'a encore rien accepte.
+    @Column(name = "requested_supervisor_id")
+    private Long requestedSupervisorId;
+
+    @Column(name = "requested_supervisor_name", length = 120)
+    private String requestedSupervisorName;
+
+    // ---- Encadrant confirme par l'entreprise a l'acceptation ----
     @Column(name = "supervisor_id")
     private Long supervisorId;
 
