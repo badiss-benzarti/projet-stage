@@ -27,6 +27,9 @@ public final class InternshipDto {
             @Size(max = 120) String contactName,
             @Email(message = "Email de l'encadrant invalide") @Size(max = 120) String contactEmail,
             @Size(max = 30) String contactPhone,
+            // Encadrant pressenti, choisi dans la liste declaree par
+            // l'entreprise partenaire. Absent sur le chemin hors referentiel.
+            Long requestedSupervisorId,
             // Pas de contrainte de date future : une inscription tardive, sur un
             // stage deja commence, est un cas reel. La coherence debut/fin est
             // verifiee dans le service.
@@ -59,6 +62,7 @@ public final class InternshipDto {
             Long companyId, String companyName,
             String companyAddress, String companyEmail, String companyPhone,
             String contactName, String contactEmail, String contactPhone,
+            Long requestedSupervisorId, String requestedSupervisorName,
             Long supervisorId, String supervisorName,
             LocalDate startDate, LocalDate endDate,
             InternshipStatus status, String rejectionReason,
@@ -72,6 +76,7 @@ public final class InternshipDto {
                     i.getCompanyId(), i.getCompanyName(),
                     i.getCompanyAddress(), i.getCompanyEmail(), i.getCompanyPhone(),
                     i.getContactName(), i.getContactEmail(), i.getContactPhone(),
+                    i.getRequestedSupervisorId(), i.getRequestedSupervisorName(),
                     i.getSupervisorId(), i.getSupervisorName(),
                     i.getStartDate(), i.getEndDate(),
                     i.getStatus(), i.getRejectionReason(),

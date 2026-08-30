@@ -125,7 +125,15 @@ Authorization: Bearer {{tokenEntreprise}}
 GET {{gateway}}/api/users/companies
 Authorization: Bearer {{tokenEtudiant}}
 
-### 2.7 Encadrants d'une entreprise
+### 2.7 Encadrants proposables a l'etudiant (projection sans email ni telephone)
+GET {{gateway}}/api/users/companies/1/supervisors/options
+Authorization: Bearer {{tokenEtudiant}}
+
+### 2.7b Fiches completes des encadrants, par l'entreprise proprietaire
+GET {{gateway}}/api/users/companies/1/supervisors
+Authorization: Bearer {{tokenEntreprise}}
+
+### 2.7c NEGATIF - un ETUDIANT lit les fiches completes (attendu 403)
 GET {{gateway}}/api/users/companies/1/supervisors
 Authorization: Bearer {{tokenEtudiant}}
 
@@ -158,6 +166,7 @@ Content-Type: {{json}}
   "academicYear": "2026-2027",
   "companyId": 1,
   "companyName": "SocieteTech Partner",
+  "requestedSupervisorId": 2,
   "startDate": "2026-07-01",
   "endDate": "2026-12-31"
 }

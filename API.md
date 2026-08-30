@@ -90,7 +90,8 @@ Rôles valides : `ETUDIANT` `ENTREPRISE` `ENCADRANT` `CHEF_DEPARTEMENT_STAGE`
 | PUT | `/api/users/companies/me` | ENTREPRISE |
 | GET | `/api/users/companies` | authentifié (annuaire) |
 | GET | `/api/users/companies/{id}` | authentifié |
-| GET | `/api/users/companies/{id}/supervisors` | authentifié |
+| GET | `/api/users/companies/{id}/supervisors` | ENTREPRISE (la sienne) · chefs · ADMIN |
+| GET | `/api/users/companies/{id}/supervisors/options` | authentifié — projection sans email ni téléphone |
 
 ```json
 { "name": "SocieteTech Partner", "address": "Rue du Lac, Tunis",

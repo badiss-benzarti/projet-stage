@@ -57,8 +57,22 @@ public class CompanyController {
         return companies.findById(id);
     }
 
+    /** Fiches completes : entreprise proprietaire et administration. */
     @GetMapping("/{id}/supervisors")
-    public List<SupervisorDto.Response> supervisorsOf(@PathVariable Long id) {
-        return supervisors.findByCompany(id);
+    @PreAuthorize("hasAnyRole('ENTREPRISE','CHEF_DEPARTEMENT_STAGE','CHEF_DEPARTEMENT_PEDAGOGIQUE','ADMIN')")
+    public List<SupervisorDto.Response> supervisorsOf(@AuthenticationPrincipal AuthenticatedUser me,
+                                                      @PathVariable Long id) {
+        return supervisors.findByCompanyForViewer(me, id);
+    }
+
+    /**
+     * Encadrants proposables a un etudiant qui depose sa demande.
+     *
+     * Projection volontairement pauvre : identifiant, nom, fonction.
+     * L'etudiant choisit une personne, il n'a pas a recevoir son email.
+     */
+    @GetMapping("/{id}/supervisors/options")
+    public List<SupervisorDto.Option> supervisorOptionsOf(@PathVariable Long id) {
+        return supervisors.findOptionsByCompany(id);
     }
 }

@@ -13,6 +13,10 @@ import { StatusBadge } from '../../shared/status-badge';
  * Accepter exige de designer un encadrant : c'est lui qui validera le
  * journal et remplira la grille. Le backend refuse une acceptation sans
  * encadrant, on impose donc le choix ici.
+ *
+ * L'etudiant a generalement deja propose un encadrant a sa demande : on
+ * le pre-selectionne, sans le figer. L'entreprise reste maitresse de
+ * l'affectation de ses collaborateurs, elle peut en designer un autre.
  */
 @Component({
   selector: 'gs-company-requests-page',
@@ -60,7 +64,9 @@ export class CompanyRequestsPage {
   protected commencerAcceptation(dossier: Internship): void {
     this.refusEnCours.set(null);
     this.acceptationEnCours.set(dossier.id);
-    this.encadrantChoisi.set(this.encadrants()[0]?.id ?? null);
+    this.encadrantChoisi.set(
+      dossier.requestedSupervisorId ?? this.encadrants()[0]?.id ?? null,
+    );
     this.erreur.set(null);
   }
 

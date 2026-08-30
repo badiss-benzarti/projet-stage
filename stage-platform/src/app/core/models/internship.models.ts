@@ -45,6 +45,9 @@ export interface Internship {
   readonly contactName: string | null;
   readonly contactEmail: string | null;
   readonly contactPhone: string | null;
+  /** Encadrant propose par l etudiant a la demande, avant confirmation. */
+  readonly requestedSupervisorId: number | null;
+  readonly requestedSupervisorName: string | null;
   readonly supervisorId: number | null;
   readonly supervisorName: string | null;
   readonly startDate: string | null;
@@ -68,6 +71,7 @@ export interface InternshipRequest {
   readonly contactName: string | null;
   readonly contactEmail: string | null;
   readonly contactPhone: string | null;
+  readonly requestedSupervisorId: number | null;
   readonly startDate: string | null;
   readonly endDate: string | null;
 }

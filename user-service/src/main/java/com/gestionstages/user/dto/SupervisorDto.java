@@ -17,6 +17,20 @@ public final class SupervisorDto {
             @Size(max = 100) String position
     ) {}
 
+    /**
+     * Projection servie a l'etudiant qui choisit son encadrant.
+     *
+     * Ni email ni telephone : le choix ne les exige pas, et une liste
+     * complete permettrait a n'importe quel etudiant de moissonner les
+     * coordonnees des encadrants de toutes les entreprises inscrites.
+     */
+    public record Option(Long id, String fullName, String position, Long companyId) {
+        public static Option from(Supervisor s) {
+            return new Option(s.getId(), s.getFirstName() + " " + s.getLastName(),
+                    s.getPosition(), s.getCompany().getId());
+        }
+    }
+
     public record Response(
             Long id, Long userId, String firstName, String lastName,
             String email, String phone, String position,

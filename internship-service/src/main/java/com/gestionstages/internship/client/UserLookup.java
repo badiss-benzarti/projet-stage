@@ -31,6 +31,22 @@ public class UserLookup {
         return call(() -> users.mySupervisorProfile(bearer()), "encadrant");
     }
 
+    /**
+     * Encadrants declares par une entreprise.
+     *
+     * Une entreprise sans encadrant declare renvoie une liste vide, ce qui
+     * n'est pas une panne : le service appelant en tire un message metier.
+     */
+    public java.util.List<UserClient.SupervisorOption> supervisorOptions(Long companyId) {
+        try {
+            return users.supervisorOptions(companyId, bearer());
+        } catch (Exception e) {
+            log.warn("Liste des encadrants de l'entreprise {} indisponible : {}", companyId, e.getMessage());
+            throw new ApiExceptions.BusinessRuleException(
+                    "Impossible de recuperer les encadrants de cette entreprise pour le moment");
+        }
+    }
+
     private <T> T call(java.util.function.Supplier<T> supplier, String profil) {
         try {
             return supplier.get();
