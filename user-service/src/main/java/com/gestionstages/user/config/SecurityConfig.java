@@ -32,6 +32,12 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
+                        // Les referentiels alimentent le formulaire
+                        // d'inscription, donc AVANT que le visiteur ait un
+                        // compte. Ils ne contiennent que les 24 gouvernorats
+                        // et les natures d'etablissement : aucune donnee
+                        // personnelle.
+                        .requestMatchers("/api/users/students/referentiels").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(entryPoint)

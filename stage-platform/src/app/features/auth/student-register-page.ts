@@ -76,7 +76,18 @@ export class StudentRegisterPage {
         this.gouvernorats.set(r.gouvernorats);
         this.typesEtablissement.set(r.typesEtablissement);
       },
-      error: () => this.erreur.set('Impossible de charger la liste des gouvernorats.'),
+      // Repli : le formulaire doit rester utilisable meme si
+      // user-service ne repond pas. Les natures d'etablissement sont
+      // stables, la liste des gouvernorats aussi.
+      error: () => {
+        this.typesEtablissement.set([
+          { value: 'PUBLIQUE', label: 'Publique / étatique' },
+          { value: 'PRIVEE', label: 'Privée' },
+        ]);
+        this.erreur.set(
+          'La liste des gouvernorats est momentanément indisponible. Réessayez dans un instant.',
+        );
+      },
     });
   }
 
