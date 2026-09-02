@@ -81,14 +81,18 @@ export class InternshipReviewPage {
     });
   }
 
+  /**
+   * Le service des stages tranche en une fois : les etats intermediaires
+   * d'instruction n'existent plus, et ne sont donc plus proposes ici.
+   */
   protected readonly filtres: readonly (InternshipStatus | null)[] = [
     null,
     'SUBMITTED',
-    'UNDER_REVIEW',
-    'APPROVED',
     'COMPANY_PENDING',
+    'ACCEPTED',
     'IN_PROGRESS',
     'COMPLETED',
+    'REJECTED',
   ];
 
   protected readonly compteurs = computed(() => {

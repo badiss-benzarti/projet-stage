@@ -129,17 +129,22 @@
                 </button>
               </div>
             } @else {
-              <div class="flex flex-wrap gap-2">
+              <ul class="space-y-3">
                 @for (action of d.availableActions; track action.target) {
-                  <button type="button" [disabled]="envoi()" (click)="preparer(action)"
-                    class="rounded-[5px] px-3.5 py-1.5 text-sm font-medium transition-colors disabled:opacity-60"
-                    [class]="action.requiresReason
-                      ? 'border border-sand-300 text-sand-700 hover:border-bad-500 hover:text-bad-700'
-                      : 'bg-petrol-700 text-white hover:bg-petrol-800'">
-                    {{ action.label }}
-                  </button>
+                  <li class="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
+                    <button type="button" [disabled]="envoi()" (click)="preparer(action)"
+                      class="shrink-0 rounded-[5px] px-3.5 py-1.5 text-sm font-medium transition-colors disabled:opacity-60"
+                      [class]="action.requiresReason
+                        ? 'border border-sand-300 text-sand-700 hover:border-bad-500 hover:text-bad-700'
+                        : 'bg-petrol-700 text-white hover:bg-petrol-800'">
+                      {{ action.label }}
+                    </button>
+                    <span class="text-xs leading-relaxed text-sand-600 sm:pt-1.5">
+                      {{ action.hint }}
+                    </span>
+                  </li>
                 }
-              </div>
+              </ul>
             }
           </div>
         }

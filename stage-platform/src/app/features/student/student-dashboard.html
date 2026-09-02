@@ -34,11 +34,17 @@
       @if (estRefuse()) {
         <div class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3">
           <p class="text-sm font-medium text-bad-700">{{ meta[d.status].label }}</p>
+          <p class="mt-1 text-sm text-bad-700/80">{{ meta[d.status].description }}</p>
           @if (d.rejectionReason) {
             <p class="mt-1 text-sm text-bad-700/80">Motif : {{ d.rejectionReason }}</p>
           }
         </div>
       } @else {
+        <!-- Ou en est le dossier, en une phrase, avant la frise. -->
+        <p class="mb-5 text-sm leading-relaxed text-sand-600">
+          <span class="font-medium text-sand-800">{{ meta[d.status].label }}</span>
+          — {{ meta[d.status].description }}
+        </p>
         <ol class="flex min-w-[640px] items-start">
           @for (etape of parcours; track etape; let i = $index; let last = $last) {
             <li class="flex flex-1 flex-col items-center" [class.flex-none]="last">
@@ -85,21 +91,62 @@
           </p>
         }
 
-        <div class="flex flex-wrap items-center gap-2">
+        <!--
+          Une action par ligne, avec sous le bouton la phrase qui dit ce
+          qu'elle declenche. Un refus est rouge : l'action irreversible ne
+          doit pas ressembler a l'action courante.
+        -->
+        <ul class="space-y-3">
           @for (action of d.availableActions; track action.target) {
-            <button
-              type="button"
-              [disabled]="actionEnCours()"
-              (click)="declencher(action)"
-              class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60"
-            >
-              {{ action.label }}
-            </button>
+            <li class="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
+              <button
+                type="button"
+                [disabled]="actionEnCours()"
+                (click)="declencher(action)"
+                class="shrink-0 rounded-[5px] px-3.5 py-1.5 text-sm font-medium text-white transition-colors disabled:opacity-60"
+                [class]="
+                  action.requiresReason
+                    ? 'bg-bad-600 hover:bg-bad-700'
+                    : 'bg-petrol-700 hover:bg-petrol-800'
+                "
+              >
+                {{ action.label }}
+              </button>
+              <span class="text-xs leading-relaxed text-sand-600 sm:pt-1.5">
+                {{ action.hint }}
+              </span>
+            </li>
           }
-        </div>
+        </ul>
       </div>
     }
   </section>
+
+  <!--
+    Les autres demandes. Une demande classee sans suite reste visible ici
+    avec son motif : elle a disparu du parcours, pas de l'historique.
+  -->
+  @if (autres().length > 0) {
+    <section class="mt-6 rounded-[8px] border border-sand-200 bg-white">
+      <div class="border-b border-sand-100 px-6 py-4">
+        <p class="eyebrow">Mes autres demandes</p>
+      </div>
+      <ul class="divide-y divide-sand-100">
+        @for (demande of autres(); track demande.id) {
+          <li class="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-sand-900">{{ demande.title }}</p>
+              <p class="mt-0.5 truncate text-xs text-sand-500">
+                {{ demande.companyName ?? 'Entreprise non renseignée' }}
+                @if (demande.rejectionReason) { · {{ demande.rejectionReason }} }
+              </p>
+            </div>
+            <gs-status-badge [status]="demande.status" />
+          </li>
+        }
+      </ul>
+    </section>
+  }
 
   <!-- Raccourcis -->
   <section class="mt-6 grid gap-4 sm:grid-cols-3">

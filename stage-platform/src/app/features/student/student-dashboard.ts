@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import {
   AvailableAction,
+  estClose,
   Internship,
   InternshipStatus,
   STATUS_META,
@@ -41,6 +42,8 @@ export class StudentDashboard {
   protected readonly chargement = signal(true);
   protected readonly erreur = signal<string | null>(null);
   protected readonly dossier = signal<Internship | null>(null);
+  /** Les demandes autres que celle mise en avant. */
+  protected readonly autres = signal<readonly Internship[]>([]);
   protected readonly actionEnCours = signal(false);
   protected readonly motif = signal('');
 
@@ -66,9 +69,20 @@ export class StudentDashboard {
     this.chargement.set(true);
     this.erreur.set(null);
 
-    this.internships.mine(0, 1).subscribe({
+    // L'etudiant peut avoir plusieurs demandes en parallele. On met en
+    // avant celle qui l'engage - un stage accepte ou en cours - sinon la
+    // plus recente encore ouverte ; les autres sont listees dessous.
+    this.internships.mine(0, 50).subscribe({
       next: (page) => {
-        this.dossier.set(page.content.length > 0 ? page.content[0] : null);
+        const toutes = page.content;
+        const principale =
+          toutes.find((d) => d.status === 'IN_PROGRESS' || d.status === 'ACCEPTED') ??
+          toutes.find((d) => !estClose(d.status)) ??
+          toutes[0] ??
+          null;
+
+        this.dossier.set(principale);
+        this.autres.set(toutes.filter((d) => d.id !== principale?.id));
         this.chargement.set(false);
       },
       error: (e: { status?: number; error?: { message?: string } }) => {

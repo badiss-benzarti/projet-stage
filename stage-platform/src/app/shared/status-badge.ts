@@ -16,6 +16,7 @@ import { InternshipStatus, STATUS_META } from '../core/models/internship.models'
     <span
       class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap"
       [class]="classes()"
+      [title]="meta().description"
     >
       <span class="size-1.5 rounded-full" [class]="dot()"></span>
       {{ meta().label }}

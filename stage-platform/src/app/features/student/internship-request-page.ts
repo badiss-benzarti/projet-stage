@@ -30,6 +30,8 @@ export class InternshipRequestPage {
 
   protected readonly chargement = signal(true);
   protected readonly enregistrement = signal(false);
+  /** Envoi du dossier en cours, distinct de l'enregistrement. */
+  protected readonly envoi = signal(false);
   protected readonly erreur = signal<string | null>(null);
   protected readonly succes = signal<string | null>(null);
 
@@ -103,9 +105,12 @@ export class InternshipRequestPage {
       error: () => this.entreprises.set([]),
     });
 
-    this.internships.mine(0, 1).subscribe({
+    // Plusieurs demandes peuvent coexister. Cet ecran travaille sur le
+    // brouillon en cours ; s'il n'y en a pas, il en ouvre un nouveau
+    // plutot que d'afficher, verrouillee, une demande deja envoyee.
+    this.internships.mine(0, 50).subscribe({
       next: (page) => {
-        const d = page.content.length > 0 ? page.content[0] : null;
+        const d = page.content.find((x) => x.status === 'DRAFT') ?? null;
         this.dossier.set(d);
         if (d) {
           this.remplir(d);
@@ -197,6 +202,45 @@ export class InternshipRequestPage {
     });
   }
 
+  /**
+   * L'action que le backend propose pour envoyer le dossier.
+   *
+   * On ne code pas "SUBMITTED" en dur : le frontend se contente des
+   * availableActions, et suit donc le workflow s'il change.
+   */
+  protected readonly actionEnvoi = computed(
+    () => this.dossier()?.availableActions?.[0] ?? null,
+  );
+
+  /** Envoie le dossier, apres l'avoir enregistre s'il a ete modifie. */
+  protected envoyer(): void {
+    const d = this.dossier();
+    const action = this.actionEnvoi();
+    if (!d || !action || this.envoi()) {
+      return;
+    }
+    if (this.form.dirty) {
+      this.erreur.set('Enregistrez d’abord vos modifications, puis envoyez.');
+      return;
+    }
+
+    this.envoi.set(true);
+    this.erreur.set(null);
+    this.succes.set(null);
+
+    this.internships.transition(d.id, { target: action.target }).subscribe({
+      next: (maj) => {
+        this.dossier.set(maj);
+        this.envoi.set(false);
+        this.succes.set('Demande envoyée.');
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.envoi.set(false);
+        this.erreur.set(e.error?.message ?? 'Envoi impossible.');
+      },
+    });
+  }
+
   protected soumettre(): void {
     if (this.enregistrement()) {
       return;
@@ -259,7 +303,7 @@ export class InternshipRequestPage {
         this.succes.set(
           existant
             ? 'Demande enregistrée.'
-            : 'Brouillon créé. Soumettez-le depuis le tableau de bord.',
+            : 'Brouillon créé. Vous pouvez l’envoyer ci-dessous.',
         );
       },
       error: (e: { error?: { message?: string; champs?: Record<string, string> } }) => {

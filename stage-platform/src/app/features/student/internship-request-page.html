@@ -251,11 +251,26 @@
     @if (modifiable()) {
       <div class="flex items-center gap-3">
         <button type="submit" [disabled]="enregistrement()"
-          class="rounded-[5px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+          class="rounded-[5px] border border-sand-300 px-4 py-2.5 text-sm font-medium text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700 disabled:opacity-60">
           {{ dossier() ? 'Enregistrer les modifications' : 'Créer le brouillon' }}
         </button>
         <a routerLink="/etudiant" class="text-sm text-sand-500 hover:text-sand-800">Annuler</a>
       </div>
+
+      <!--
+        Envoi possible des que le brouillon existe : l'etudiant n'a plus
+        a retourner au tableau de bord pour trouver le bouton. Le libelle
+        et l'explication viennent du serveur, comme partout ailleurs.
+      -->
+      @if (actionEnvoi(); as action) {
+        <div class="rounded-[6px] border border-petrol-300/60 bg-petrol-50/60 px-4 py-4">
+          <button type="button" [disabled]="envoi()" (click)="envoyer()"
+            class="rounded-[5px] bg-petrol-700 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+            {{ envoi() ? 'Envoi en cours…' : action.label }}
+          </button>
+          <p class="mt-2 text-xs leading-relaxed text-sand-600">{{ action.hint }}</p>
+        </div>
+      }
     }
   </form>
 }
