@@ -41,6 +41,33 @@
           </p>
         }
 
+        <!--
+          Le dossier du candidat, reuni au meme endroit que la decision :
+          le CV vient du profil de l'etudiant, les autres pieces sont
+          jointes a la demande. On les montre sans deplier, pour que
+          l'absence de piece se voie aussi vite que leur presence.
+        -->
+        <div class="border-b border-sand-100 px-6 py-4">
+          <p class="eyebrow mb-2">Dossier du candidat</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" (click)="telechargerCv(dossier)"
+              class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700">
+              CV
+            </button>
+            @for (piece of pieces(dossier); track piece.id) {
+              <button type="button" (click)="telecharger(piece)"
+                class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700">
+                {{ typeLabels[piece.type] }}
+              </button>
+            }
+            @if (pieces(dossier).length === 0) {
+              <span class="text-xs text-sand-500">
+                Aucune autre pièce jointe à cette demande.
+              </span>
+            }
+          </div>
+        </div>
+
         <div class="bg-sand-50/60 px-6 py-4">
           @if (acceptationEnCours() === dossier.id) {
             <label [for]="'enc-' + dossier.id" class="mb-1.5 block text-sm font-medium text-sand-700">
@@ -94,15 +121,33 @@
               </button>
             </div>
           } @else {
-            <div class="flex flex-wrap gap-2">
-              <button type="button" (click)="commencerAcceptation(dossier)"
-                class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800">
-                Accepter le stagiaire
-              </button>
-              <button type="button" (click)="commencerRefus(dossier)"
-                class="rounded-[5px] border border-sand-300 px-3.5 py-1.5 text-sm text-sand-700 transition-colors hover:border-bad-500 hover:text-bad-700">
-                Refuser
-              </button>
+            <!--
+              Chaque choix annonce sa consequence : accepter engage un
+              encadrant, refuser ferme le dossier. Le refus reste en
+              retrait pour ne pas etre clique par reflexe.
+            -->
+            <p class="mb-3 text-sm text-sand-600">
+              Cet étudiant demande un stage chez vous. À vous de répondre.
+            </p>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
+              <div>
+                <button type="button" (click)="commencerAcceptation(dossier)"
+                  class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800">
+                  Accepter cet étudiant en stage
+                </button>
+                <p class="mt-1.5 max-w-xs text-xs leading-relaxed text-sand-500">
+                  Vous choisirez son encadrant à l’étape suivante.
+                </p>
+              </div>
+              <div>
+                <button type="button" (click)="commencerRefus(dossier)"
+                  class="rounded-[5px] border border-sand-300 px-3.5 py-1.5 text-sm text-sand-700 transition-colors hover:border-bad-500 hover:text-bad-700">
+                  Refuser cette demande
+                </button>
+                <p class="mt-1.5 max-w-xs text-xs leading-relaxed text-sand-500">
+                  Un motif vous sera demandé ; l’étudiant le recevra.
+                </p>
+              </div>
             </div>
           }
         </div>

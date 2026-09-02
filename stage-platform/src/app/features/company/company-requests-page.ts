@@ -1,8 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 
 import { AvailableAction, Internship } from '../../core/models/internship.models';
+import {
+  DOCUMENT_TYPE_LABELS,
+  DocumentService,
+  StageDocument,
+} from '../../core/services/document.service';
 import { InternshipService } from '../../core/services/internship.service';
 import { Supervisor, UserService } from '../../core/services/user.service';
+import { telechargerBlob } from '../../shared/download';
 import { EmptyState } from '../../shared/empty-state';
 import { Spinner } from '../../shared/spinner';
 import { StatusBadge } from '../../shared/status-badge';
@@ -27,6 +33,9 @@ import { StatusBadge } from '../../shared/status-badge';
 export class CompanyRequestsPage {
   private readonly internships = inject(InternshipService);
   private readonly users = inject(UserService);
+  private readonly documents = inject(DocumentService);
+
+  protected readonly typeLabels = DOCUMENT_TYPE_LABELS;
 
   protected readonly chargement = signal(true);
   protected readonly envoi = signal(false);
@@ -45,6 +54,7 @@ export class CompanyRequestsPage {
       next: (page) => {
         this.demandes.set(page.content);
         this.chargement.set(false);
+        page.content.forEach((d) => this.chargerDossier(d));
       },
       error: (e: { error?: { message?: string } }) => {
         this.chargement.set(false);
@@ -58,6 +68,50 @@ export class CompanyRequestsPage {
           next: (liste) => this.encadrants.set(liste),
         }),
       error: () => this.encadrants.set([]),
+    });
+  }
+
+  /**
+   * Pieces jointes a la demande, par dossier.
+   *
+   * Chargees a l'ouverture de la liste plutot qu'au clic : l'entreprise
+   * doit voir d'un coup d'oeil si un candidat a joint quelque chose,
+   * sans avoir a deplier chaque demande pour le decouvrir.
+   */
+  protected readonly piecesParDossier = signal<ReadonlyMap<number, readonly StageDocument[]>>(
+    new Map(),
+  );
+
+  private chargerDossier(d: Internship): void {
+    this.documents.forInternship(d.id).subscribe({
+      next: (liste) => {
+        const copie = new Map(this.piecesParDossier());
+        copie.set(d.id, liste);
+        this.piecesParDossier.set(copie);
+      },
+      error: () => {
+        /* Une piece illisible ne doit pas masquer la demande elle-meme. */
+      },
+    });
+  }
+
+  protected pieces(dossier: Internship): readonly StageDocument[] {
+    return this.piecesParDossier().get(dossier.id) ?? [];
+  }
+
+  protected telecharger(doc: StageDocument): void {
+    this.documents.download(doc.id).subscribe({
+      next: (blob) => telechargerBlob(blob, doc.originalName ?? 'document.pdf'),
+      error: () => this.erreur.set('Téléchargement impossible.'),
+    });
+  }
+
+  /** Le CV vit sur le profil de l'etudiant, pas sur le dossier de stage. */
+  protected telechargerCv(dossier: Internship): void {
+    this.users.studentCvBlob(dossier.studentId).subscribe({
+      next: (blob) =>
+        telechargerBlob(blob, `cv-${dossier.studentName.replace(/\s+/g, '-')}.pdf`),
+      error: () => this.erreur.set('Ce candidat n’a pas déposé de CV.'),
     });
   }
 

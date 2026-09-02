@@ -50,6 +50,8 @@ export class DocumentsPage {
 
   /** L'attestation n'est pas deposee par l'etudiant quand elle est generee. */
   protected readonly typesDeposables: readonly DocumentType[] = [
+    'LETTRE_MOTIVATION',
+    'ATTESTATION_SCOLARITE',
     'CONVENTION',
     'LETTRE_AFFECTATION',
     'RAPPORT',

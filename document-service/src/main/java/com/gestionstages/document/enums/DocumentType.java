@@ -1,6 +1,6 @@
 package com.gestionstages.document.enums;
 
-/** Les quatre types de documents prevus par le cahier des charges. */
+/** Les documents echanges autour d'un stage. */
 public enum DocumentType {
 
     /** Convention de stage signee par l'entreprise. */
@@ -13,10 +13,29 @@ public enum DocumentType {
     RAPPORT,
 
     /** Attestation de stage : deposee, ou generee par la plateforme. */
-    ATTESTATION;
+    ATTESTATION,
+
+    /**
+     * Lettre de motivation, jointe par l'etudiant a sa candidature.
+     * Avec le CV du profil, c'est ce que l'entreprise lit avant de se
+     * prononcer.
+     */
+    LETTRE_MOTIVATION,
+
+    /** Attestation de scolarite, justifiant l'inscription de l'etudiant. */
+    ATTESTATION_SCOLARITE;
 
     /** Une attestation peut etre produite par la plateforme, pas les autres. */
     public boolean isGenerable() {
         return this == ATTESTATION;
+    }
+
+    /**
+     * Vrai si la piece constitue le dossier de candidature montre a
+     * l'entreprise, par opposition aux documents administratifs produits
+     * pendant ou apres le stage.
+     */
+    public boolean isCandidature() {
+        return this == LETTRE_MOTIVATION || this == ATTESTATION_SCOLARITE;
     }
 }

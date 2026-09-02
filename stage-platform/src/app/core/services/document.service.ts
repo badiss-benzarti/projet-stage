@@ -4,7 +4,13 @@ import { Observable } from 'rxjs';
 
 import { Page } from '../models/internship.models';
 
-export type DocumentType = 'CONVENTION' | 'LETTRE_AFFECTATION' | 'RAPPORT' | 'ATTESTATION';
+export type DocumentType =
+  | 'CONVENTION'
+  | 'LETTRE_AFFECTATION'
+  | 'RAPPORT'
+  | 'ATTESTATION'
+  | 'LETTRE_MOTIVATION'
+  | 'ATTESTATION_SCOLARITE';
 export type DocumentStatus = 'UPLOADED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 export interface StageDocument {
@@ -27,6 +33,8 @@ export const DOCUMENT_TYPE_LABELS: Readonly<Record<DocumentType, string>> = {
   CONVENTION: 'Convention de stage',
   LETTRE_AFFECTATION: 'Lettre d’affectation',
   RAPPORT: 'Rapport de stage',
+  LETTRE_MOTIVATION: 'Lettre de motivation',
+  ATTESTATION_SCOLARITE: 'Attestation de scolarité',
   ATTESTATION: 'Attestation de stage',
 };
 
