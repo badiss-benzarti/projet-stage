@@ -120,6 +120,17 @@
             </p>
           }
 
+          <!--
+            La presentation de l'entreprise choisie : c'est ce sur quoi
+            l'etudiant se decide, autant la lui montrer sans quitter le
+            formulaire.
+          -->
+          @if (entrepriseChoisie()?.description; as presentation) {
+            <p class="mt-3 rounded-[6px] border border-sand-200 bg-sand-50/60 px-3 py-2.5 text-sm leading-relaxed text-sand-700">
+              {{ presentation }}
+            </p>
+          }
+
           @if (form.controls.companyId.value !== null) {
             <div class="mt-5 border-t border-sand-100 pt-5">
               <label for="requestedSupervisorId" class="mb-1.5 block text-sm font-medium text-sand-700">

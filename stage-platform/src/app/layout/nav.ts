@@ -25,6 +25,7 @@ export const NAV_BY_ROLE: Readonly<Record<Role, readonly NavSection[]>> = {
       items: [
         { label: 'Tableau de bord', route: '/etudiant', exact: true },
         { label: 'Mon profil', route: '/etudiant/profil' },
+        { label: 'Entreprises', route: '/etudiant/entreprises' },
         { label: 'Ma demande', route: '/etudiant/demande' },
         { label: 'Journal de stage', route: '/etudiant/journal' },
         { label: 'Documents', route: '/etudiant/documents' },
@@ -68,6 +69,7 @@ export const NAV_BY_ROLE: Readonly<Record<Role, readonly NavSection[]>> = {
         { label: 'Demandes', route: '/departement-stages/demandes' },
         { label: 'Documents à valider', route: '/departement-stages/documents' },
         { label: 'Conventions et lettres', route: '/departement-stages/requetes' },
+        { label: 'Entreprises', route: '/departement-stages/entreprises' },
       ],
     },
   ],
@@ -79,6 +81,7 @@ export const NAV_BY_ROLE: Readonly<Record<Role, readonly NavSection[]>> = {
         { label: 'Notes et évaluations', route: '/departement-pedagogique/notes' },
         { label: 'Réclamations', route: '/departement-pedagogique/reclamations' },
         { label: 'Suivi du risque', route: '/departement-pedagogique/risques' },
+        { label: 'Entreprises', route: '/departement-pedagogique/entreprises' },
       ],
     },
   ],

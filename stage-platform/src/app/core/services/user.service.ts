@@ -12,6 +12,8 @@ export interface Company {
   readonly phone: string;
   readonly email: string;
   readonly taxId: string | null;
+  /** Presentation libre de l'entreprise, affichée aux étudiants. */
+  readonly description: string | null;
   readonly supervisorCount: number;
 }
 
@@ -133,6 +135,11 @@ export class UserService {
   /** Son propre CV, en blob : le lien direct ne porte pas le jeton. */
   myCvBlob(): Observable<Blob> {
     return this.http.get(`${this.base}/students/me/cv`, { responseType: 'blob' });
+  }
+
+  /** Fiche complete d'un etudiant, pour l'encadrant et les departements. */
+  studentById(studentId: number): Observable<StudentProfile> {
+    return this.http.get<StudentProfile>(`${this.base}/students/${studentId}`);
   }
 
   /** Le CV d'un candidat, pour l'entreprise et les departements. */

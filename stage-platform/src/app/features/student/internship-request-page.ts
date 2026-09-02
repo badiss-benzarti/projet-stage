@@ -42,6 +42,11 @@ export class InternshipRequestPage {
   /** Vrai quand l'etudiant saisit une entreprise hors referentiel. */
   protected readonly horsReferentiel = signal(false);
 
+  /** L'entreprise selectionnee, pour afficher sa presentation. */
+  protected readonly entrepriseChoisie = computed(() =>
+    this.entreprises().find((e) => e.id === this.form.controls.companyId.value) ?? null,
+  );
+
   protected readonly modifiable = computed(() => {
     const d = this.dossier();
     return d === null || d.status === 'DRAFT';

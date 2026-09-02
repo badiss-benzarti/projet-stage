@@ -49,6 +49,18 @@
           class="w-full rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none" />
       </div>
 
+      <!-- Texte libre : c'est ce que lit l'etudiant avant de postuler. -->
+      <div class="sm:col-span-2">
+        <label for="description" class="mb-1.5 block text-sm font-medium text-sand-700">
+          Présentation
+          <span class="font-normal text-sand-400">— lue par les étudiants qui vous choisissent</span>
+        </label>
+        <textarea id="description" formControlName="description" rows="5"
+          placeholder="Votre activité, votre taille, les missions que vous confiez aux stagiaires, les technologies que vous utilisez…"
+          class="w-full resize-y rounded-[6px] border border-sand-300 px-3 py-2.5 text-sm placeholder:text-sand-400 focus:border-petrol-500 focus:outline-none"></textarea>
+        <p class="mt-1 text-xs text-sand-400">2000 caractères maximum.</p>
+      </div>
+
       @if (erreur(); as message) {
         <p class="rounded-[6px] border border-bad-500/25 bg-bad-50 px-3 py-2.5 text-sm text-bad-700 sm:col-span-2">
           {{ message }}

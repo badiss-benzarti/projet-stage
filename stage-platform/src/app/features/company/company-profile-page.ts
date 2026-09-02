@@ -38,6 +38,7 @@ export class CompanyProfilePage {
     phone: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     taxId: [''],
+    description: ['', Validators.maxLength(2000)],
   });
 
   constructor() {
@@ -52,6 +53,7 @@ export class CompanyProfilePage {
           phone: c.phone,
           email: c.email,
           taxId: c.taxId ?? '',
+          description: c.description ?? '',
         });
         this.chargement.set(false);
       },
@@ -78,6 +80,7 @@ export class CompanyProfilePage {
       phone: v.phone.trim(),
       email: v.email.trim(),
       taxId: v.taxId.trim(),
+      description: v.description.trim() || null,
     };
 
     this.envoi.set(true);
