@@ -7,6 +7,7 @@ import { Page } from '../models/internship.models';
 export type DocumentType =
   | 'CONVENTION'
   | 'LETTRE_AFFECTATION'
+  | 'JOURNAL'
   | 'RAPPORT'
   | 'ATTESTATION'
   | 'LETTRE_MOTIVATION'
@@ -32,6 +33,7 @@ export interface StageDocument {
 export const DOCUMENT_TYPE_LABELS: Readonly<Record<DocumentType, string>> = {
   CONVENTION: 'Convention de stage',
   LETTRE_AFFECTATION: 'Lettre d’affectation',
+  JOURNAL: 'Journal de stage signé',
   RAPPORT: 'Rapport de stage',
   LETTRE_MOTIVATION: 'Lettre de motivation',
   ATTESTATION_SCOLARITE: 'Attestation de scolarité',
@@ -83,6 +85,14 @@ export class DocumentService {
   generateAttestation(internshipId: number): Observable<StageDocument> {
     return this.http.post<StageDocument>(
       `${this.base}/internships/${internshipId}/attestation`,
+      {},
+    );
+  }
+
+  /** Lettre d'affectation editee par le service des stages. */
+  genererLettreAffectation(internshipId: number): Observable<StageDocument> {
+    return this.http.post<StageDocument>(
+      `${this.base}/internships/${internshipId}/lettre-affectation`,
       {},
     );
   }

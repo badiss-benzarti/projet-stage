@@ -89,27 +89,33 @@
     </div>
   </section>
 
-  <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+  <!--
+    Deux listes distinctes plutot qu'une seule.
+    Ce que l'etudiant a depose attend une validation et peut etre
+    corrige ; ce qu'il a recu est definitif et ne se supprime pas.
+    Les melanger obligeait a lire la pastille pour savoir de quel cote
+    on etait.
+  -->
+  <section class="mb-6 overflow-hidden rounded-[6px] border border-sand-200 bg-white">
     <div class="border-b border-sand-100 px-6 py-4">
-      <p class="eyebrow">Documents déposés</p>
+      <p class="eyebrow">Mes dépôts</p>
+      <p class="mt-1 text-sm text-sand-500">
+        Les pièces que vous avez remises. Le service des stages les valide ou les refuse
+        avec un motif.
+      </p>
     </div>
 
-    @if (liste().length === 0) {
-      <gs-empty-state title="Aucun document"
-        hint="Convention, lettre d’affectation, rapport et attestation se déposent ici. Le service des stages les valide ou les refuse avec un motif." />
+    @if (deposes().length === 0) {
+      <gs-empty-state title="Aucun dépôt"
+        hint="Journal signé, rapport et attestation de stage se déposent ci-dessus." />
     } @else {
       <ul class="divide-y divide-sand-100">
-        @for (doc of liste(); track doc.id) {
+        @for (doc of deposes(); track doc.id) {
           <li class="px-6 py-4">
             <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span class="font-medium text-sand-900">{{ typeLabels[doc.type] }}</span>
               <span class="truncate text-sm text-sand-500">{{ doc.originalName }}</span>
               <span class="text-xs text-sand-400 tabular">{{ taille(doc.sizeBytes) }}</span>
-              @if (doc.generated) {
-                <span class="rounded-full border border-petrol-300/50 bg-petrol-50 px-2 py-0.5 text-[11px] text-petrol-700">
-                  généré par la plateforme
-                </span>
-              }
               <span class="ml-auto rounded-full border px-2.5 py-0.5 text-xs font-medium"
                 [class]="doc.status === 'APPROVED'
                   ? 'border-ok-500/25 bg-ok-50 text-ok-700'
@@ -139,6 +145,37 @@
                 </button>
               }
             </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="overflow-hidden rounded-[6px] border border-sand-200 bg-white">
+    <div class="border-b border-sand-100 px-6 py-4">
+      <p class="eyebrow">Documents reçus</p>
+      <p class="mt-1 text-sm text-sand-500">
+        Les documents édités pour vous par le service des stages ou par votre entreprise
+        d’accueil, en réponse à vos demandes.
+      </p>
+    </div>
+
+    @if (recus().length === 0) {
+      <gs-empty-state title="Aucun document reçu"
+        hint="Convention, lettre d’affectation et attestation de stage apparaîtront ici une fois votre demande acceptée." />
+    } @else {
+      <ul class="divide-y divide-sand-100">
+        @for (doc of recus(); track doc.id) {
+          <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-6 py-4">
+            <span class="font-medium text-sand-900">{{ typeLabels[doc.type] }}</span>
+            <span class="text-xs text-sand-400 tabular">{{ taille(doc.sizeBytes) }}</span>
+            @if (doc.validatedBy) {
+              <span class="text-xs text-sand-400">délivré par {{ doc.validatedBy }}</span>
+            }
+            <button type="button" (click)="telecharger(doc)"
+              class="ml-auto text-xs font-medium text-petrol-700 hover:underline">
+              Télécharger
+            </button>
           </li>
         }
       </ul>

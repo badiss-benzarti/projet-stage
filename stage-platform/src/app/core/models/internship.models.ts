@@ -178,22 +178,43 @@ export function estClose(statut: InternshipStatus): boolean {
 
 // --- Demandes de convention et de lettre d'affectation ---
 
-export type RequestType = 'CONVENTION' | 'LETTRE_AFFECTATION';
+export type RequestType =
+  | 'DEMANDE_STAGE'
+  | 'ATTESTATION_SCOLARITE'
+  | 'CONVENTION'
+  | 'LETTRE_AFFECTATION'
+  | 'ATTESTATION_PRESENCE'
+  /** Delivree par l'entreprise, pas par l'ecole. */
+  | 'ATTESTATION_STAGE';
 export type RequestStatus = 'PENDING' | 'ISSUED' | 'REJECTED';
 
 export interface DocumentRequest {
   readonly id: number;
-  readonly internshipId: number;
+  readonly studentId: number;
+  readonly studentName: string;
+  readonly studentEmail: string | null;
+  /** Nul pour une demande sans dossier : demande de stage, scolarité. */
+  readonly internshipId: number | null;
+  readonly internshipTitle: string | null;
+  readonly companyName: string | null;
   readonly type: RequestType;
+  readonly typeLabel: string;
   readonly status: RequestStatus;
   readonly reason: string | null;
   readonly processedBy: string | null;
+  readonly processedAt: string | null;
+  /** Identifiant du PDF rattaché une fois la demande éditée. */
+  readonly documentId: number | null;
   readonly createdAt: string;
 }
 
 export const REQUEST_TYPE_LABELS: Readonly<Record<RequestType, string>> = {
   CONVENTION: 'Convention de stage',
   LETTRE_AFFECTATION: 'Lettre d’affectation',
+  DEMANDE_STAGE: 'Demande de stage',
+  ATTESTATION_SCOLARITE: 'Attestation de scolarité',
+  ATTESTATION_PRESENCE: 'Attestation de présence',
+  ATTESTATION_STAGE: 'Attestation de stage',
 };
 
 export const REQUEST_STATUS_LABELS: Readonly<Record<RequestStatus, string>> = {

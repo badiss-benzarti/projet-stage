@@ -76,10 +76,30 @@ export class InternshipService {
   }
   // ---- Demandes de convention et de lettre d'affectation ----
 
+  /** Les attestations de stage que l'entreprise doit delivrer. */
+  companyRequests(): Observable<readonly DocumentRequest[]> {
+    return this.http.get<readonly DocumentRequest[]>(`${this.base}/requests/company`);
+  }
+
+  /** Rattache a la demande le PDF qui vient d'etre produit. */
+  markRequestIssued(requestId: number, documentId: number): Observable<DocumentRequest> {
+    return this.http.patch<DocumentRequest>(`${this.base}/requests/${requestId}/issued`, {
+      documentId,
+    });
+  }
+
   pendingRequests(): Observable<Page<DocumentRequest>> {
     return this.http.get<Page<DocumentRequest>>(`${this.base}/requests/pending`, {
       params: new HttpParams().set('size', 50),
     });
+  }
+
+  /**
+   * Toutes les demandes de l'etudiant, tous dossiers confondus - y
+   * compris celles qui n'en ont aucun, comme l'attestation de scolarite.
+   */
+  myRequests(): Observable<readonly DocumentRequest[]> {
+    return this.http.get<readonly DocumentRequest[]>(`${this.base}/requests/mine`);
   }
 
   requestsOf(internshipId: number): Observable<readonly DocumentRequest[]> {
