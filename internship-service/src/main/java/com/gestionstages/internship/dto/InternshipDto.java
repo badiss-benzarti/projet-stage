@@ -50,9 +50,13 @@ public final class InternshipDto {
             String actorName, String actorRole, String comment, String at
     ) {}
 
-    /** Une action proposee au frontend pour l'utilisateur courant. */
+    /**
+     * Une action proposee au frontend pour l'utilisateur courant.
+     * {@code hint} explique la consequence : le frontend l'affiche sous
+     * le bouton plutot que de laisser deviner ce que l'action declenche.
+     */
     public record AvailableAction(
-            InternshipStatus target, String label, boolean requiresReason
+            InternshipStatus target, String label, String hint, boolean requiresReason
     ) {}
 
     public record Response(

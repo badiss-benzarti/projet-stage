@@ -92,8 +92,9 @@ class NotificationComposerTest {
     @Test
     @DisplayName("chaque notification porte l'identifiant du stage, pour le lien du frontend")
     void everyNotificationCarriesTheInternshipId() {
-        for (String type : List.of("stage.submitted", "stage.approved", "stage.rejected",
-                "stage.company.accepted", "stage.company.refused", "stage.completed")) {
+        for (String type : List.of("stage.submitted", "stage.company.pending", "stage.approved",
+                "stage.rejected", "stage.company.accepted", "stage.company.refused",
+                "stage.completed")) {
             assertThat(composer.compose(event(type, "motif")))
                     .as("evenement %s", type)
                     .isNotEmpty()

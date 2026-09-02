@@ -27,9 +27,12 @@ public class InternshipEventPublisher {
 
     /** Etat cible -> cle de routage. Les etats absents ne generent rien. */
     private static final Map<InternshipStatus, String> ROUTING = Map.of(
+            // Chaque etape previent celui dont on attend desormais quelque
+            // chose : le service des stages a la soumission, l'entreprise
+            // quand le dossier lui est transmis, l'etudiant aux decisions.
             SUBMITTED,  "stage.submitted",
-            APPROVED,   "stage.approved",
             REJECTED,   "stage.rejected",
+            COMPANY_PENDING, "stage.company.pending",
             ACCEPTED,   "stage.company.accepted",
             REFUSED,    "stage.company.refused",
             COMPLETED,  "stage.completed");

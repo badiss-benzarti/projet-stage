@@ -43,10 +43,21 @@ public enum InternshipStatus {
     IN_PROGRESS,
 
     /** Stage termine, evaluation close. */
-    COMPLETED;
+    COMPLETED,
+
+    /**
+     * Demande classee sans suite parce qu'une autre a abouti.
+     *
+     * L'etudiant peut deposer plusieurs demandes ; des que l'une est
+     * acceptee, les autres n'ont plus d'objet. On les ferme plutot que
+     * de les supprimer : le dossier garde la trace de ce qui a ete
+     * tente, et l'etudiant comprend pourquoi elles ont disparu.
+     */
+    ABANDONED;
 
     /** Un etat terminal n'admet plus aucune transition. */
     public boolean isTerminal() {
-        return this == REJECTED || this == REFUSED || this == COMPLETED;
+        return this == REJECTED || this == REFUSED
+                || this == COMPLETED || this == ABANDONED;
     }
 }

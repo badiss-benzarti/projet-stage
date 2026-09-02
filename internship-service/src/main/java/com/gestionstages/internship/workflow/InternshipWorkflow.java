@@ -27,40 +27,56 @@ public class InternshipWorkflow {
 
     private static final Map<InternshipStatus, List<Transition>> TABLE = Map.of(
 
+            // Le service des stages instruit d'abord ; l'entreprise n'est
+            // sollicitee qu'une fois le dossier valide par l'ecole.
             DRAFT, List.of(
                     new Transition(SUBMITTED, Set.of(ETUDIANT), false,
-                            "Soumettre la demande")),
+                            "Envoyer ma demande",
+                            "Votre dossier part au service des stages, qui "
+                                    + "l'examine avant de le transmettre a "
+                                    + "l'entreprise. Vous ne pourrez plus le "
+                                    + "modifier : relisez-le avant d'envoyer.")),
 
+            // Deux issues seulement pour le service des stages : il
+            // accepte, et le dossier part chez l'entreprise, ou il
+            // refuse. L'instruction en trois temps - prendre en charge,
+            // approuver, transmettre - imposait trois clics pour un seul
+            // arbitrage, sans que les etats intermediaires servent a
+            // quiconque.
             SUBMITTED, List.of(
-                    new Transition(UNDER_REVIEW, Set.of(CHEF_DEPARTEMENT_STAGE), false,
-                            "Prendre en charge")),
-
-            UNDER_REVIEW, List.of(
-                    new Transition(APPROVED, Set.of(CHEF_DEPARTEMENT_STAGE), false,
-                            "Approuver la demande"),
-                    new Transition(REJECTED, Set.of(CHEF_DEPARTEMENT_STAGE), true,
-                            "Refuser la demande")),
-
-            APPROVED, List.of(
                     new Transition(COMPANY_PENDING, Set.of(CHEF_DEPARTEMENT_STAGE), false,
-                            "Transmettre a l'entreprise")),
+                            "Accepter la demande",
+                            "Vous validez le dossier et le transmettez a "
+                                    + "l'entreprise, a qui revient la decision "
+                                    + "finale d'accueillir le stagiaire."),
+                    new Transition(REJECTED, Set.of(CHEF_DEPARTEMENT_STAGE), true,
+                            "Refuser la demande",
+                            "Le dossier est clos et l'etudiant recoit votre motif. "
+                                    + "L'entreprise n'en sera pas informee. "
+                                    + "Le motif est obligatoire.")),
 
-            // Le service des stages peut repondre a la place de
-            // l'entreprise : toutes les structures d'accueil n'ont pas de
-            // compte, et beaucoup repondent par courriel ou sur papier.
+            // L'entreprise, et elle seule, accepte ou refuse le stagiaire.
             COMPANY_PENDING, List.of(
-                    new Transition(ACCEPTED, Set.of(ENTREPRISE, CHEF_DEPARTEMENT_STAGE), false,
-                            "Accepter le stagiaire"),
-                    new Transition(REFUSED, Set.of(ENTREPRISE, CHEF_DEPARTEMENT_STAGE), true,
-                            "Refuser le stagiaire")),
+                    new Transition(ACCEPTED, Set.of(ENTREPRISE), false,
+                            "Accepter cet etudiant en stage",
+                            "Vous prenez l'etudiant en stage. L'encadrant qu'il a "
+                                    + "choisi lui est affecte, et le stage peut demarrer."),
+                    new Transition(REFUSED, Set.of(ENTREPRISE), true,
+                            "Refuser cette demande",
+                            "L'etudiant est prevenu avec votre motif et devra "
+                                    + "chercher une autre entreprise. Le motif est obligatoire.")),
 
             ACCEPTED, List.of(
                     new Transition(IN_PROGRESS, Set.of(CHEF_DEPARTEMENT_STAGE, ENTREPRISE), false,
-                            "Demarrer le stage")),
+                            "Demarrer le stage",
+                            "Le stage commence : l'etudiant peut des maintenant "
+                                    + "remplir son journal de stage.")),
 
             IN_PROGRESS, List.of(
                     new Transition(COMPLETED, Set.of(ENCADRANT, CHEF_DEPARTEMENT_STAGE), false,
-                            "Cloturer le stage"))
+                            "Cloturer le stage",
+                            "Le stage est termine. Le journal se ferme et la note "
+                                    + "de l'evaluation devient definitive."))
     );
 
     /** Transitions possibles depuis un etat, tous roles confondus. */

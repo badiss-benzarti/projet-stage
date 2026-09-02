@@ -44,19 +44,25 @@ public class InternshipService {
     /**
      * Cree un brouillon pour l'etudiant connecte.
      *
-     * Un etudiant ne peut avoir qu'un seul dossier actif : deux demandes
-     * en parallele rendraient le workflow et la note ambigus.
+     * Plusieurs demandes en parallele sont permises : un etudiant
+     * demarche plusieurs entreprises a la fois. L'ambiguite est levee a
+     * l'acceptation, ou les demandes concurrentes sont classees sans
+     * suite - voir classerLesAutresDemandes.
+     *
+     * Un stage deja demarre ferme en revanche la porte : on ne postule
+     * plus ailleurs quand on a commence.
      */
     @Transactional
     public InternshipDto.Response create(AuthenticatedUser me, InternshipDto.Request req) {
         UserClient.StudentRef student = lookup.student();
 
-        boolean dossierEnCours = !internships
-                .findByStudentIdAndStatusNotIn(student.id(), List.of(REJECTED, REFUSED, COMPLETED))
-                .isEmpty();
+        boolean stageEngage = internships
+                .findByStudentIdAndStatusIn(student.id(), List.of(ACCEPTED, IN_PROGRESS))
+                .stream().findAny().isPresent();
 
-        if (dossierEnCours) {
-            throw new ApiExceptions.BusinessRuleException("Vous avez deja un dossier de stage en cours");
+        if (stageEngage) {
+            throw new ApiExceptions.BusinessRuleException(
+                    "Vous avez deja un stage accepte : vous ne pouvez plus deposer de nouvelle demande");
         }
 
         validateDates(req);
@@ -198,7 +204,8 @@ public class InternshipService {
         Role role = Role.of(me.role());
 
         List<InternshipDto.AvailableAction> actions = workflow.availableFor(i.getStatus(), role).stream()
-                .map(t -> new InternshipDto.AvailableAction(t.to(), t.label(), t.requiresReason()))
+                .map(t -> new InternshipDto.AvailableAction(
+                        t.to(), t.label(), t.hint(), t.requiresReason()))
                 .toList();
 
         List<InternshipDto.HistoryEntry> history = i.getHistory().stream()
@@ -246,7 +253,7 @@ public class InternshipService {
                     "Un motif est obligatoire pour : " + t.label());
         }
 
-        applyBusinessEffects(i, req);
+        applyBusinessEffects(me, i, req);
 
         i.setStatus(req.target());
         i.getHistory().add(StatusHistory.builder()
@@ -268,7 +275,8 @@ public class InternshipService {
     }
 
     /** Effets de bord propres a certaines transitions. */
-    private void applyBusinessEffects(Internship i, InternshipDto.TransitionRequest req) {
+    private void applyBusinessEffects(AuthenticatedUser me, Internship i,
+                                      InternshipDto.TransitionRequest req) {
         switch (req.target()) {
             case SUBMITTED -> {
                 // Deux chemins, deux jeux d'exigences.
@@ -330,8 +338,50 @@ public class InternshipService {
                     }
                     i.setSupervisorName(nom);
                 }
+
+                classerLesAutresDemandes(me, i);
             }
             default -> { /* aucun effet de bord */ }
+        }
+    }
+
+    /**
+     * Une demande acceptee rend les autres sans objet.
+     *
+     * On les ferme au lieu de les supprimer : l'etudiant garde la trace
+     * de ses demarches, et le motif explique la disparition plutot que
+     * de laisser croire a une perte de donnees. Les dossiers deja
+     * termines ou refuses ne sont pas touches, ils sont deja clos.
+     */
+    private void classerLesAutresDemandes(AuthenticatedUser me, Internship accepte) {
+        List<Internship> autres = internships
+                .findByStudentIdAndStatusNotIn(accepte.getStudentId(),
+                        List.of(REJECTED, REFUSED, COMPLETED, ABANDONED))
+                .stream()
+                .filter(a -> !a.getId().equals(accepte.getId()))
+                .toList();
+
+        for (Internship a : autres) {
+            InternshipStatus precedent = a.getStatus();
+            a.setStatus(ABANDONED);
+            a.setRejectionReason("Classee sans suite : votre stage chez "
+                    + (accepte.getCompanyName() == null ? "une autre entreprise" : accepte.getCompanyName())
+                    + " a ete accepte.");
+            a.getHistory().add(StatusHistory.builder()
+                    .internship(a)
+                    .fromStatus(precedent)
+                    .toStatus(ABANDONED)
+                    .actorId(me.id())
+                    .actorName(me.fullName())
+                    .actorRole(me.role())
+                    .comment("Une autre demande a abouti")
+                    .build());
+        }
+
+        if (!autres.isEmpty()) {
+            internships.saveAll(autres);
+            log.info("{} demande(s) classee(s) sans suite pour l'etudiant {}",
+                    autres.size(), accepte.getStudentId());
         }
     }
 
@@ -388,8 +438,11 @@ public class InternshipService {
 
     @Transactional(readOnly = true)
     public Page<InternshipDto.Response> forDepartment(InternshipStatus status, Pageable pageable) {
+        // Un brouillon n'a pas ete envoye : il appartient encore a
+        // l'etudiant seul. L'afficher au service des stages donnait a
+        // instruire des dossiers que personne ne lui avait soumis.
         Page<Internship> page = (status == null)
-                ? internships.findAll(pageable)
+                ? internships.findByStatusNot(DRAFT, pageable)
                 : internships.findByStatus(status, pageable);
         return page.map(InternshipDto.Response::summary);
     }

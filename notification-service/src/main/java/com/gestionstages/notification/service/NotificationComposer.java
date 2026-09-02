@@ -17,6 +17,7 @@ import java.util.List;
 @Component
 public class NotificationComposer {
 
+    private static final String ENTREPRISE  = "ENTREPRISE";
     private static final String CHEF_STAGE  = "CHEF_DEPARTEMENT_STAGE";
     private static final String CHEF_PEDAGO = "CHEF_DEPARTEMENT_PEDAGOGIQUE";
 
@@ -28,6 +29,20 @@ public class NotificationComposer {
             case "stage.submitted" -> notifications.add(pourRole(e, CHEF_STAGE,
                     "Nouvelle demande de stage",
                     e.studentName() + " a soumis une demande de stage : " + e.title()));
+
+            // Le dossier, valide par l'ecole, arrive chez l'entreprise.
+            // L'etudiant est prevenu au meme moment : c'est sa seule
+            // nouvelle entre l'envoi et la reponse de l'entreprise.
+            case "stage.company.pending" -> {
+                notifications.add(pourRole(e, ENTREPRISE,
+                        "Nouvelle demande de stage",
+                        e.studentName() + " demande un stage chez vous : " + e.title()));
+                notifications.add(pourEtudiant(e,
+                        "Votre demande est acceptee par l'ecole",
+                        "Le service des stages a valide votre dossier. Il est transmis a "
+                                + nvl(e.companyName(), "l'entreprise d'accueil")
+                                + ", qui doit maintenant se prononcer."));
+            }
 
             case "stage.approved" -> notifications.add(pourEtudiant(e,
                     "Votre demande de stage est approuvee",

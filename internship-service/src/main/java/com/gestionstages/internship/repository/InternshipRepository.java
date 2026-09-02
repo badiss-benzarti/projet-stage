@@ -24,6 +24,12 @@ public interface InternshipRepository extends JpaRepository<Internship, Long> {
 
     List<Internship> findByStudentIdAndStatusNotIn(Long studentId, List<InternshipStatus> excluded);
 
+    /** Sert a verifier qu'un stage est deja engage avant d'en demander un autre. */
+    List<Internship> findByStudentIdAndStatusIn(Long studentId, List<InternshipStatus> statuses);
+
+    /** Tout sauf les brouillons : ce que le service des stages a a connaitre. */
+    Page<Internship> findByStatusNot(InternshipStatus status, Pageable pageable);
+
     @Query("select i from Internship i left join fetch i.history where i.id = :id")
     Optional<Internship> findByIdWithHistory(Long id);
 
