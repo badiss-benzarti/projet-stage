@@ -4,97 +4,190 @@
     <meta charset="UTF-8" />
     <title>Journal de stage</title>
     <style>
-        @page { size: A4; margin: 18mm 15mm; }
-        body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #1a2226; }
+        @page { size: A4; margin: 15mm 14mm; }
+        body { font-family: Helvetica, sans-serif; font-size: 10pt; color: #14181b; }
 
-        .bandeau { border-bottom: 2pt solid #12556b; padding-bottom: 6pt; margin-bottom: 14pt; }
-        .bandeau h1 { font-size: 17pt; margin: 0 0 3pt 0; color: #12556b; font-weight: normal; }
-        .bandeau .soustitre { font-size: 9pt; color: #5a6a74; }
+        /* --- En-tete etablissement ------------------------------- */
+        .etablissement { margin-bottom: 10pt; }
+        .etablissement .marque {
+            font-size: 20pt; font-weight: bold; color: #b3282d; letter-spacing: -0.5pt;
+        }
+        .etablissement .devise { font-size: 7.5pt; color: #55606a; margin-top: 1pt; }
+        .etablissement .rattachement {
+            font-size: 6pt; color: #8b959d; letter-spacing: 0.6pt; margin-top: 4pt;
+        }
 
-        table.infos { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
-        table.infos td { padding: 3pt 0; font-size: 9.5pt; vertical-align: top; }
-        table.infos td.cle { color: #5a6a74; width: 28%; }
+        h1.titre {
+            text-align: center; font-size: 19pt; font-weight: bold;
+            margin: 14pt 0 16pt 0;
+        }
+
+        /* --- Cases a cocher du type de stage ---------------------- */
+        table.types { width: 100%; border-collapse: collapse; margin-bottom: 14pt; }
+        table.types td { font-size: 8.5pt; text-align: center; vertical-align: middle; }
+        .case {
+            display: inline-block; width: 9pt; height: 9pt;
+            border: 0.8pt solid #14181b; margin-right: 4pt; vertical-align: -1pt;
+            text-align: center; font-size: 8pt; line-height: 9pt; font-weight: bold;
+        }
+
+        /* --- Cartouche d'identification --------------------------- */
+        table.cartouche { width: 100%; border-collapse: collapse; }
+        table.cartouche td {
+            border: 0.8pt solid #14181b; padding: 7pt 6pt; font-size: 9.5pt;
+            vertical-align: middle;
+        }
+        table.cartouche td.cle { width: 34%; }
+        table.cartouche td.valeur { font-weight: bold; }
+        .sous { font-size: 8pt; color: #55606a; font-weight: normal; }
+
+        .signatures { height: 92pt; }
+        .signatures td { vertical-align: top; }
+
+        .annee { margin-top: 10pt; font-size: 8.5pt; }
+
+        /* --- Page 2 : le journal ---------------------------------- */
+        .saut { page-break-before: always; }
+        h2.section { font-size: 11.5pt; margin: 0 0 10pt 0; }
 
         table.journal { width: 100%; border-collapse: collapse; }
-        table.journal th {
-            background: #12556b; color: #ffffff; font-size: 8.5pt; font-weight: bold;
-            text-align: left; padding: 5pt 4pt; letter-spacing: 0.4pt;
+        table.journal th, table.journal td {
+            border: 0.8pt solid #14181b; padding: 6pt 5pt; font-size: 9pt;
+            vertical-align: top;
         }
-        table.journal td { border-bottom: 0.5pt solid #d7dfe4; padding: 5pt 4pt; font-size: 9pt; }
-        table.journal td.num { text-align: right; }
-        .statut { font-size: 7.5pt; padding: 1pt 4pt; }
-        .v { color: #2e6b3a; }
-        .r { color: #98322b; }
-        .p { color: #855610; }
+        table.journal th { font-weight: bold; text-align: center; font-size: 9.5pt; }
+        table.journal td.date { width: 22%; text-align: center; white-space: nowrap; }
+        table.journal td.tache { width: 78%; }
+        .precision { display: block; font-size: 8pt; color: #55606a; margin-top: 2pt; }
+        .vide { text-align: center; color: #8b959d; padding: 16pt; }
 
-        .synthese { margin-top: 14pt; border-top: 1pt solid #12556b; padding-top: 8pt; }
-        .synthese td { padding: 2pt 10pt 2pt 0; font-size: 9.5pt; }
-        .synthese .valeur { font-weight: bold; }
-
-        .pied { margin-top: 20pt; font-size: 8pt; color: #8b979e; border-top: 0.5pt solid #d7dfe4; padding-top: 5pt; }
+        .pied { margin-top: 12pt; font-size: 7.5pt; color: #8b959d; }
     </style>
 </head>
 <body>
 
-<div class="bandeau">
-    <h1>Journal de stage</h1>
-    <div class="soustitre" th:text="${titre}">Titre du stage</div>
+<!-- =============== PAGE 1 : page de garde =============== -->
+
+<div class="etablissement">
+    <div class="marque">esprit</div>
+    <div class="devise">ecole superieure prive d'ingenierie et de technologies</div>
+    <div class="rattachement">HONORIS UNITED UNIVERSITIES</div>
 </div>
 
-<table class="infos">
-    <tr><td class="cle">Etudiant</td><td th:text="${etudiant}">Nom</td></tr>
-    <tr><td class="cle">Type de stage</td><td th:text="${type}">PFE</td></tr>
-    <tr><td class="cle">Entreprise d'accueil</td><td th:text="${entreprise}">Entreprise</td></tr>
-    <tr><td class="cle">Encadrant</td><td th:text="${encadrant}">Encadrant</td></tr>
-    <tr><td class="cle">Periode</td><td th:text="${periode}">Periode</td></tr>
-</table>
+<h1 class="titre">Journal de Stage</h1>
 
-<table class="journal">
-    <thead>
+<table class="types">
     <tr>
-        <th style="width:15%">DATE</th>
-        <th style="width:33%">TACHE</th>
-        <th style="width:32%">DESCRIPTION</th>
-        <th style="width:9%">HEURES</th>
-        <th style="width:11%">ETAT</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="t : ${taches}">
-        <td th:text="${t.date}">01/01/2027</td>
-        <td th:text="${t.titre}">Tache</td>
-        <td th:text="${t.description}">Description</td>
-        <td class="num" th:text="${t.heures}">7</td>
         <td>
-            <span class="statut"
-                  th:classappend="${t.statut == 'VALIDATED'} ? 'v' : (${t.statut == 'REJECTED'} ? 'r' : 'p')"
-                  th:text="${t.libelle}">Validee</span>
+            <span class="case" th:text="${caseHumaine} ? 'X' : ''"></span>
+            Stage de formation<br/>humaine et sociale
+        </td>
+        <td>
+            <span class="case" th:text="${caseImmersion} ? 'X' : ''"></span>
+            Stage d'immersion<br/>en entreprise
+        </td>
+        <td>
+            <span class="case" th:text="${caseIngenieur} ? 'X' : ''"></span>
+            Stage ingenieur
         </td>
     </tr>
-    <tr th:if="${#lists.isEmpty(taches)}">
-        <td colspan="5" style="text-align:center; color:#8b979e; padding:14pt">
-            Aucune tache saisie a ce jour.
-        </td>
-    </tr>
-    </tbody>
 </table>
 
-<div class="synthese">
-    <table>
-        <tr>
-            <td>Taches saisies</td><td class="valeur" th:text="${total}">0</td>
-            <td>Validees</td><td class="valeur" th:text="${validees}">0</td>
-            <td>En attente</td><td class="valeur" th:text="${attente}">0</td>
-            <td>Refusees</td><td class="valeur" th:text="${refusees}">0</td>
-        </tr>
-        <tr>
-            <td>Heures validees</td><td class="valeur" th:text="${heures}">0</td>
-        </tr>
-    </table>
+<table class="cartouche">
+    <tr>
+        <td class="cle">Nom et prenom de l'etudiant(e)</td>
+        <td class="valeur" th:text="${etudiant}">Nom Prenom</td>
+    </tr>
+    <tr>
+        <td class="cle">Identifiant</td>
+        <td class="valeur" th:text="${identifiant}"></td>
+    </tr>
+    <tr>
+        <td class="cle">Classe</td>
+        <td class="valeur" th:text="${classe}"></td>
+    </tr>
+    <tr>
+        <td class="cle">Sujet du stage</td>
+        <td class="valeur" th:text="${sujet}"></td>
+    </tr>
+    <tr>
+        <td class="cle">Duree du stage</td>
+        <td class="valeur">
+            Debut : <span th:text="${debut}"></span>
+            &#160;&#160;&#160;&#160;
+            Fin : <span th:text="${fin}"></span>
+        </td>
+    </tr>
+    <tr>
+        <td class="cle">Organisme d'accueil</td>
+        <td class="valeur" th:text="${organisme}"></td>
+    </tr>
+    <tr>
+        <td class="cle">Maitre de Stage</td>
+        <td class="valeur" th:text="${maitreDeStage}"></td>
+    </tr>
+    <tr>
+        <td class="cle">Fonction</td>
+        <td class="valeur" th:text="${fonction}"></td>
+    </tr>
+    <tr>
+        <td class="cle">
+            Contact entreprise
+            <span class="sous">Adresse mail</span>
+        </td>
+        <td class="valeur" th:text="${emailEntreprise}"></td>
+    </tr>
+    <tr>
+        <td class="cle"><span class="sous">N&#176; Telephone</span></td>
+        <td class="valeur" th:text="${telephoneEntreprise}"></td>
+    </tr>
+    <!--
+      Signature et cachet restent volontairement vides : ils sont
+      apposes a la main sur le document imprime.
+    -->
+    <tr class="signatures">
+        <td>Signature du maitre de stage</td>
+        <td>Cachet de l'entreprise</td>
+    </tr>
+</table>
+
+<div class="annee">
+    Annee universitaire <span th:text="${anneeUniversitaire}"></span>
 </div>
 
-<div class="pied">
-    <span th:text="${genereLe}">Genere le</span> &#183; Plateforme de gestion des stages
+<!-- =============== PAGE 2 : le journal =============== -->
+
+<div class="saut">
+    <h2 class="section">1- Journal de stage (a rediger par le stagiaire)</h2>
+
+    <table class="journal">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Taches realisees</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="t : ${taches}">
+            <td class="date" th:text="${t.date}">01/01/2026</td>
+            <td class="tache">
+                <span th:text="${t.titre}">Tache</span>
+                <span class="precision" th:if="${!#strings.isEmpty(t.description)}"
+                      th:text="${t.description}">Description</span>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(taches)}">
+            <td class="vide" colspan="2">Aucune tache saisie a ce jour.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="pied">
+        <span th:text="${genereLe}">Genere le</span>
+        &#183; <span th:text="${total}">0</span> tache(s) &#183;
+        <span th:text="${heures}">0</span> h validees
+        &#183; Annee universitaire <span th:text="${anneeUniversitaire}"></span>
+    </div>
 </div>
 
 </body>

@@ -19,6 +19,8 @@ public interface InternshipClient {
             Long studentId, String studentName, String studentEmail,
             String type, String title, String status,
             Long companyId, String companyName,
+            String companyEmail, String companyPhone, String contactName,
+            String academicYear,
             Long supervisorId, String supervisorName,
             LocalDate startDate, LocalDate endDate
     ) {}

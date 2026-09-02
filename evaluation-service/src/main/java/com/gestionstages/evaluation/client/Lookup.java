@@ -34,6 +34,32 @@ public class Lookup {
         return call(() -> internships.byId(id, bearer()), "stage " + id);
     }
 
+    /**
+     * Profils detailles, au mieux.
+     *
+     * Contrairement aux appels ci-dessus, un echec n'est pas une erreur :
+     * ces endpoints sont fermes au role ETUDIANT, donc un etudiant qui
+     * telecharge son propre journal n'y a pas acces. Renvoyer null laisse
+     * les cases vides, comme sur le formulaire papier, plutot que de
+     * refuser le document.
+     */
+    public UserClient.Ref studentDetails(Long id) {
+        return optional(() -> users.studentById(id, bearer()));
+    }
+
+    public UserClient.Ref supervisorDetails(Long id) {
+        return optional(() -> users.supervisorById(id, bearer()));
+    }
+
+    private <T> T optional(Supplier<T> supplier) {
+        try {
+            return supplier.get();
+        } catch (Exception e) {
+            log.debug("Profil detaille indisponible : {}", e.getMessage());
+            return null;
+        }
+    }
+
     private <T> T call(Supplier<T> supplier, String quoi) {
         try {
             return supplier.get();

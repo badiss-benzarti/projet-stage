@@ -50,6 +50,12 @@ public class JournalPdfService {
             lignes.add(l);
         }
 
+        // Profils detailles : absents si c'est l'etudiant qui telecharge,
+        // les cases correspondantes restent alors vides.
+        var etudiant = lookup.studentDetails(stage.studentId());
+        var encadrant = stage.supervisorId() == null
+                ? null : lookup.supervisorDetails(stage.supervisorId());
+
         Map<String, Object> vars = new HashMap<>();
         vars.put("titre", stage.title());
         vars.put("etudiant", stage.studentName());
@@ -58,6 +64,28 @@ public class JournalPdfService {
         vars.put("encadrant", nvl(stage.supervisorName()));
         vars.put("periode", periode(stage.startDate(), stage.endDate()));
         vars.put("taches", lignes);
+
+        // --- Page de garde du formulaire ESPRIT ---------------------
+        // Les trois cases a cocher de l'imprime ne correspondent pas une
+        // pour une a nos deux types : un PFE est un stage ingenieur, un
+        // stage d'ete une immersion en entreprise. La formation humaine
+        // et sociale n'existe pas dans la plateforme, sa case reste vide.
+        vars.put("caseIngenieur", "PFE".equals(stage.type()));
+        vars.put("caseImmersion", !"PFE".equals(stage.type()));
+        vars.put("caseHumaine", false);
+
+        vars.put("identifiant", champ(etudiant == null ? null : etudiant.cin()));
+        vars.put("classe", champ(etudiant == null ? null : etudiant.classe()));
+        vars.put("sujet", champ(stage.title()));
+        vars.put("debut", stage.startDate() == null ? "" : stage.startDate().format(JOUR));
+        vars.put("fin", stage.endDate() == null ? "" : stage.endDate().format(JOUR));
+        vars.put("organisme", champ(stage.companyName()));
+        vars.put("maitreDeStage", champ(
+                stage.supervisorName() != null ? stage.supervisorName() : stage.contactName()));
+        vars.put("fonction", champ(encadrant == null ? null : encadrant.position()));
+        vars.put("emailEntreprise", champ(stage.companyEmail()));
+        vars.put("telephoneEntreprise", champ(stage.companyPhone()));
+        vars.put("anneeUniversitaire", champ(stage.academicYear()));
         vars.put("total", synthese.total());
         vars.put("validees", synthese.validated());
         vars.put("attente", synthese.pending());
@@ -82,4 +110,11 @@ public class JournalPdfService {
     }
 
     private String nvl(String s) { return s == null || s.isBlank() ? "Non renseigne" : s; }
+
+    /**
+     * Sur un formulaire, une information absente se laisse en blanc : on
+     * la remplit a la main. Ecrire "Non renseigne" dans la case rendrait
+     * le document inutilisable une fois imprime.
+     */
+    private String champ(String s) { return s == null || s.isBlank() ? "" : s; }
 }
