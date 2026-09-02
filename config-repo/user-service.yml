@@ -14,3 +14,9 @@ app:
     location: ${PHOTOS_PATH:./photos}
     allowed-types: image/jpeg,image/png,image/webp
     max-size-bytes: 2097152
+
+  # CV des etudiants, en PDF. Volume Docker en production.
+  cv:
+    location: ${CV_PATH:./cv}
+    allowed-types: application/pdf
+    max-size-bytes: 5242880

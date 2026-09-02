@@ -48,6 +48,43 @@
           </div>
         </div>
 
+        <!--
+          CV : depose une fois, consulte ensuite par l'entreprise et le
+          departement. Le nom d'origine est reaffiche pour que l'etudiant
+          reconnaisse le fichier qu'il a envoye.
+        -->
+        <div class="mb-6 rounded-[6px] border border-sand-200 bg-sand-50/60 px-4 py-3">
+          <p class="text-sm font-medium text-sand-700">Curriculum vitae</p>
+          <p class="mt-0.5 text-xs text-sand-500">
+            PDF · 5 Mo maximum. Visible par l’entreprise d’accueil et le service des stages.
+          </p>
+
+          @if (profil()?.hasCv) {
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span class="text-sm text-sand-800">{{ profil()?.cvName }}</span>
+              <button type="button" (click)="telechargerCv()"
+                class="text-sm text-petrol-700 underline underline-offset-2">
+                Télécharger
+              </button>
+              <label class="cursor-pointer rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700">
+                Remplacer
+                <input type="file" accept="application/pdf" [disabled]="envoiCv()"
+                  (change)="deposerCv($event)" class="sr-only" />
+              </label>
+              <button type="button" (click)="retirerCv()" [disabled]="envoiCv()"
+                class="text-sm text-sand-500 transition-colors hover:text-bad-700 disabled:opacity-60">
+                Retirer
+              </button>
+            </div>
+          } @else {
+            <label class="mt-2 inline-block cursor-pointer rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700">
+              {{ envoiCv() ? 'Dépôt en cours…' : 'Ajouter mon CV' }}
+              <input type="file" accept="application/pdf" [disabled]="envoiCv()"
+                (change)="deposerCv($event)" class="sr-only" />
+            </label>
+          }
+        </div>
+
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label for="firstName" class="mb-1.5 block text-sm font-medium text-sand-700">Prénom</label>

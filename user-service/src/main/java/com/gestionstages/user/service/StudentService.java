@@ -18,6 +18,7 @@ public class StudentService {
 
     private final StudentRepository students;
     private final PhotoStorageService photos;
+    private final CvStorageService cvs;
 
     /** Cree le profil du porteur du jeton : un etudiant ne peut creer que le sien. */
     @Transactional
@@ -120,6 +121,63 @@ public class StudentService {
     }
 
     public record Photo(byte[] contenu, String contentType) {}
+
+    // ---- CV ----
+
+    /** Remplace le CV du porteur du jeton ; l'ancien est supprime. */
+    @Transactional
+    public StudentDto.Response saveCv(AuthenticatedUser me, MultipartFile fichier) {
+        Student s = students.findByUserId(me.id())
+                .orElseThrow(() -> new ApiExceptions.NotFoundException("Profil etudiant", me.email()));
+
+        String ancien = s.getCvName();
+        s.setCvName(cvs.store(fichier));
+        s.setCvOriginalName(fichier.getOriginalFilename());
+        s.setCvContentType(fichier.getContentType());
+        cvs.delete(ancien);
+
+        return StudentDto.Response.from(s);
+    }
+
+    /** Retire le CV : l'etudiant reste maitre de ce qu'il expose. */
+    @Transactional
+    public StudentDto.Response deleteCv(AuthenticatedUser me) {
+        Student s = students.findByUserId(me.id())
+                .orElseThrow(() -> new ApiExceptions.NotFoundException("Profil etudiant", me.email()));
+
+        cvs.delete(s.getCvName());
+        s.setCvName(null);
+        s.setCvOriginalName(null);
+        s.setCvContentType(null);
+
+        return StudentDto.Response.from(s);
+    }
+
+    /** Le CV du porteur du jeton. */
+    @Transactional(readOnly = true)
+    public Cv myCv(AuthenticatedUser me) {
+        Student s = students.findByUserId(me.id())
+                .orElseThrow(() -> new ApiExceptions.NotFoundException("Profil etudiant", me.email()));
+        return lire(s);
+    }
+
+    /** Le CV d'un etudiant, pour l'entreprise et les departements. */
+    @Transactional(readOnly = true)
+    public Cv cv(Long studentId) {
+        Student s = students.findById(studentId)
+                .orElseThrow(() -> new ApiExceptions.NotFoundException("Etudiant", studentId));
+        return lire(s);
+    }
+
+    private Cv lire(Student s) {
+        if (s.getCvName() == null) {
+            throw new ApiExceptions.NotFoundException("CV de l'etudiant", s.getId());
+        }
+        return new Cv(cvs.read(s.getCvName()),
+                cvs.downloadName(s.getCvOriginalName(), s.fullName()));
+    }
+
+    public record Cv(byte[] contenu, String nomFichier) {}
 
     private String blankToNull(String v) {
         return (v == null || v.isBlank()) ? null : v;

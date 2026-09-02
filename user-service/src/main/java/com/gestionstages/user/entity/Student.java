@@ -90,6 +90,23 @@ public class Student {
     @Column(name = "photo_content_type", length = 100)
     private String photoContentType;
 
+    // ---- CV ----
+
+    /** Nom sur disque, genere ; jamais le nom d'origine. */
+    @Column(name = "cv_name", length = 120)
+    private String cvName;
+
+    /**
+     * Nom choisi par l'etudiant. Conserve pour le seul affichage et pour
+     * nommer le telechargement : un CV rendu sous un UUID serait
+     * illisible dans le dossier de celui qui le recoit.
+     */
+    @Column(name = "cv_original_name", length = 200)
+    private String cvOriginalName;
+
+    @Column(name = "cv_content_type", length = 100)
+    private String cvContentType;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

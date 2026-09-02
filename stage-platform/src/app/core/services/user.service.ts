@@ -35,12 +35,15 @@ export interface StudentProfile {
   readonly governorate: string | null;
   readonly governorateLabel: string | null;
   readonly hasPhoto: boolean;
+  readonly hasCv: boolean;
+  /** Nom du fichier tel que l'etudiant l'a depose, null s'il n'y a pas de CV. */
+  readonly cvName: string | null;
 }
 
 /** Ce que le formulaire envoie : le profil sans ses champs calcules. */
 export type StudentProfileRequest = Omit<
   StudentProfile,
-  'id' | 'userId' | 'governorateLabel' | 'hasPhoto'
+  'id' | 'userId' | 'governorateLabel' | 'hasPhoto' | 'hasCv' | 'cvName'
 >;
 
 export interface Option {
@@ -114,6 +117,27 @@ export class UserService {
     return this.http.get(`${this.base}/students/${studentId}/photo`, {
       responseType: 'blob',
     });
+  }
+
+  /** CV de l'etudiant : PDF, remplace le precedent. */
+  uploadMyCv(fichier: File): Observable<StudentProfile> {
+    const corps = new FormData();
+    corps.append('file', fichier);
+    return this.http.post<StudentProfile>(`${this.base}/students/me/cv`, corps);
+  }
+
+  deleteMyCv(): Observable<StudentProfile> {
+    return this.http.delete<StudentProfile>(`${this.base}/students/me/cv`);
+  }
+
+  /** Son propre CV, en blob : le lien direct ne porte pas le jeton. */
+  myCvBlob(): Observable<Blob> {
+    return this.http.get(`${this.base}/students/me/cv`, { responseType: 'blob' });
+  }
+
+  /** Le CV d'un candidat, pour l'entreprise et les departements. */
+  studentCvBlob(studentId: number): Observable<Blob> {
+    return this.http.get(`${this.base}/students/${studentId}/cv`, { responseType: 'blob' });
   }
 
   /** Encadrants declares par une entreprise, proposables a un etudiant. */

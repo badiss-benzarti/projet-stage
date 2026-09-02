@@ -43,7 +43,8 @@ public final class StudentDto {
             String email, String phone, String cin, String classe, String departement,
             String institutionName, InstitutionType institutionType, Integer academicLevel,
             String address, String city, Governorate governorate, String governorateLabel,
-            boolean hasPhoto
+            boolean hasPhoto,
+            boolean hasCv, String cvName
     ) {
         public static Response from(Student s) {
             return new Response(
@@ -52,7 +53,8 @@ public final class StudentDto {
                     s.getInstitutionName(), s.getInstitutionType(), s.getAcademicLevel(),
                     s.getAddress(), s.getCity(), s.getGovernorate(),
                     s.getGovernorate() == null ? null : s.getGovernorate().libelle(),
-                    s.getPhotoName() != null);
+                    s.getPhotoName() != null,
+                    s.getCvName() != null, s.getCvOriginalName());
         }
     }
 

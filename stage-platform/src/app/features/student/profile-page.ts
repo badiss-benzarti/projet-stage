@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { Option, StudentProfile, UserService } from '../../core/services/user.service';
+import { telechargerBlob } from '../../shared/download';
 import { Spinner } from '../../shared/spinner';
 
 /**
@@ -38,6 +39,9 @@ export class ProfilePage {
   /** Aperçu local d'une photo qui vient d'être choisie. */
   protected readonly apercu = signal<string | null>(null);
   protected readonly photoUrl = signal<string | null>(null);
+
+  /** Depot ou retrait du CV en cours : evite le double clic. */
+  protected readonly envoiCv = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(60)]],
@@ -133,6 +137,65 @@ export class ProfilePage {
         this.apercu.set(null);
         input.value = '';
         this.erreur.set(e.error?.message ?? 'Dépôt de la photo impossible.');
+      },
+    });
+  }
+
+  protected deposerCv(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const fichier = input.files?.[0];
+    if (!fichier) {
+      return;
+    }
+    if (!this.existe()) {
+      this.erreur.set('Enregistrez d’abord votre profil, puis ajoutez votre CV.');
+      input.value = '';
+      return;
+    }
+
+    this.erreur.set(null);
+    this.envoiCv.set(true);
+    this.users.uploadMyCv(fichier).subscribe({
+      next: (p) => {
+        this.profil.set(p);
+        this.envoiCv.set(false);
+        this.succes.set('CV déposé.');
+        input.value = '';
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.envoiCv.set(false);
+        input.value = '';
+        this.erreur.set(e.error?.message ?? 'Dépôt du CV impossible.');
+      },
+    });
+  }
+
+  protected telechargerCv(): void {
+    const p = this.profil();
+    if (!p?.hasCv) {
+      return;
+    }
+    this.users.myCvBlob().subscribe({
+      next: (blob) => telechargerBlob(blob, p.cvName ?? 'cv.pdf'),
+      error: () => this.erreur.set('Téléchargement du CV impossible.'),
+    });
+  }
+
+  protected retirerCv(): void {
+    if (!this.profil()?.hasCv) {
+      return;
+    }
+    this.erreur.set(null);
+    this.envoiCv.set(true);
+    this.users.deleteMyCv().subscribe({
+      next: (p) => {
+        this.profil.set(p);
+        this.envoiCv.set(false);
+        this.succes.set('CV retiré.');
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.envoiCv.set(false);
+        this.erreur.set(e.error?.message ?? 'Suppression du CV impossible.');
       },
     });
   }
