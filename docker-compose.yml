@@ -1,17 +1,40 @@
 # =====================================================================
-#  Plateforme de gestion des stages
+#  Plateforme de gestion des stages - pile complete
 #
-#  Etat au 20/08 : infrastructure seule (MySQL + RabbitMQ).
-#  Les microservices seront ajoutes au fur et a mesure ; SonarQube est
-#  isole derriere le profil "quality" pour ne pas peser sur les 16 Go.
-#
-#      docker compose up -d                     infrastructure
+#      docker compose up -d --build             toute la plateforme
+#      docker compose up -d mysql rabbitmq      infrastructure seule (dev IntelliJ)
 #      docker compose --profile quality up -d   + SonarQube
 #      docker compose down                      arret
 #      docker compose down -v                   arret + purge des donnees
+#
+#  Seuls Angular (4200), le gateway (8090), Eureka (8761) et le
+#  config-server (8888) sont publies. Les services metier ne sont
+#  joignables que sur le reseau interne, a travers le gateway.
 # =====================================================================
 
+# --- Reglages communs a tous les services Spring metier -------------
+x-spring-env: &spring-env
+  CONFIG_HOST: config-server
+  EUREKA_HOST: discovery-server
+  DB_HOST: mysql
+  DB_USER: ${DB_USER:-root}
+  DB_PASS: ${DB_PASS:-root}
+  RABBIT_HOST: rabbitmq
+  RABBIT_USER: ${RABBIT_USER:-guest}
+  RABBIT_PASS: ${RABBIT_PASS:-guest}
+
+x-service-base: &service-base
+  restart: unless-stopped
+  networks: [gs-net]
+  # Limite haute, pas une reservation : a l'usage chaque service tourne
+  # autour de 300 Mo. MaxRAMPercentage=70 (Dockerfile) s'y adapte seul.
+  mem_limit: 512m
+
 services:
+
+  # ==================================================================
+  #  INFRASTRUCTURE
+  # ==================================================================
 
   # ------------------------------------------------------------------
   #  MySQL : un seul conteneur, 6 schemas (un par microservice)
@@ -59,10 +82,236 @@ services:
       start_period: 30s
     networks: [gs-net]
 
+  # ==================================================================
+  #  SPRING CLOUD - a demarrer avant tout le reste
+  # ==================================================================
+
   # ------------------------------------------------------------------
-  #  SonarQube : profil "quality" uniquement (2,7 Go avec sa base)
+  #  Eureka : http://localhost:8761
+  # ------------------------------------------------------------------
+  discovery-server:
+    <<: *service-base
+    build: ./discovery-server
+    container_name: gs-discovery
+    mem_limit: 384m
+    environment:
+      EUREKA_HOSTNAME: discovery-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+
+  # ------------------------------------------------------------------
+  #  Config Server : mode natif, lit config-repo/ monte en lecture seule.
+  #  CONFIG_REPO est fixe ici parce que la valeur par defaut du service
+  #  (../config-repo) depend du repertoire de travail.
+  # ------------------------------------------------------------------
+  config-server:
+    <<: *service-base
+    build: ./config-server
+    container_name: gs-config
+    mem_limit: 384m
+    environment:
+      CONFIG_REPO: /config-repo
+      EUREKA_HOST: discovery-server
+    volumes:
+      - ./config-repo:/config-repo:ro
+    ports:
+      - "8888:8888"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8888/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+
+  # ------------------------------------------------------------------
+  #  API Gateway : seule porte d'entree des services metier.
+  # ------------------------------------------------------------------
+  api-gateway:
+    <<: *service-base
+    build: ./api-gateway
+    container_name: gs-gateway
+    environment:
+      <<: *spring-env
+      ML_HOST: ml-service
+    ports:
+      - "8090:8090"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8090/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
+
+  # ==================================================================
+  #  SERVICES METIER - aucun port publie vers l'hote
+  # ==================================================================
+
+  auth-service:
+    <<: *service-base
+    build: ./auth-service
+    container_name: gs-auth
+    environment: *spring-env
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  user-service:
+    <<: *service-base
+    build: ./user-service
+    container_name: gs-user
+    environment:
+      <<: *spring-env
+      PHOTOS_PATH: /data/photos
+      CV_PATH: /data/cv
+    volumes:
+      - user-photos:/data/photos
+      - user-cv:/data/cv
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  internship-service:
+    <<: *service-base
+    build: ./internship-service
+    container_name: gs-internship
+    environment: *spring-env
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8083/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  evaluation-service:
+    <<: *service-base
+    build: ./evaluation-service
+    container_name: gs-evaluation
+    environment:
+      <<: *spring-env
+      ML_HOST: ml-service
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8084/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  document-service:
+    <<: *service-base
+    build: ./document-service
+    container_name: gs-document
+    environment:
+      <<: *spring-env
+      STORAGE_PATH: /data/storage
+    volumes:
+      - document-storage:/data/storage
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8085/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  notification-service:
+    <<: *service-base
+    build: ./notification-service
+    container_name: gs-notification
+    environment: *spring-env
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8086/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  # ------------------------------------------------------------------
+  #  ml-service : FastAPI. Le modele est entraine pendant le build,
+  #  le healthcheck est declare dans son Dockerfile.
+  # ------------------------------------------------------------------
+  ml-service:
+    <<: *service-base
+    build: ./ml-service
+    container_name: gs-ml
+    mem_limit: 768m
+
+  # ==================================================================
+  #  FRONTEND
+  # ==================================================================
+
+  # ------------------------------------------------------------------
+  #  Angular servi par nginx, qui relaie /api vers le gateway.
+  #  Publie sur 4200 pour garder l'URL des documents du projet.
+  # ------------------------------------------------------------------
+  frontend:
+    <<: *service-base
+    build: ./stage-platform
+    container_name: gs-frontend
+    mem_limit: 256m
+    ports:
+      - "4200:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+  # ==================================================================
+  #  QUALITE - profil "quality" uniquement (2,7 Go avec sa base)
   #  Ne doit PAS tourner pendant la demonstration.
-  # ------------------------------------------------------------------
+  # ==================================================================
+
   sonar-postgres:
     image: postgres:16-alpine
     container_name: gs-sonar-db
@@ -98,6 +347,9 @@ services:
 volumes:
   mysql-data:
   rabbitmq-data:
+  user-photos:
+  user-cv:
+  document-storage:
   sonar-db:
   sonar-data:
   sonar-extensions:

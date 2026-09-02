@@ -25,6 +25,14 @@ WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
 
 COPY --from=build /app/target/*.jar app.jar
+
+# Point de montage des documents deposes (STORAGE_PATH). Le repertoire
+# doit exister ET appartenir a "app" DANS L'IMAGE : un volume nomme
+# reprend les droits du repertoire qu'il recouvre. Sans cela il est
+# monte en root et le service, qui ne tourne pas en root, ne peut pas
+# y ecrire.
+RUN mkdir -p /data/storage && chown -R app:app /data
+
 USER app
 
 EXPOSE 8085
