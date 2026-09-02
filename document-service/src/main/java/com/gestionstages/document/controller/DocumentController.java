@@ -6,6 +6,7 @@ import com.gestionstages.document.enums.DocumentType;
 import com.gestionstages.document.security.AuthenticatedUser;
 import com.gestionstages.document.service.AttestationService;
 import com.gestionstages.document.service.DocumentService;
+import com.gestionstages.document.service.LettreAffectationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -28,6 +29,7 @@ public class DocumentController {
 
     private final DocumentService documents;
     private final AttestationService attestations;
+    private final LettreAffectationService lettres;
 
     /** Depot d'un fichier signe : convention, lettre, rapport, attestation. */
     @PostMapping(value = "/internships/{internshipId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -82,12 +84,32 @@ public class DocumentController {
         documents.delete(me, id);
     }
 
-    /** Attestation en ligne, reservee aux stages DSI et EspritTech. */
+    /**
+     * Attestation de stage, delivree par l'entreprise d'accueil.
+     *
+     * C'est elle qui atteste qu'un stage a bien ete effectue chez elle :
+     * l'ecole ne peut pas le certifier a sa place. Le service des stages
+     * garde l'acces pour les entreprises qui n'ont pas de compte et
+     * repondent hors plateforme.
+     */
     @PostMapping("/internships/{internshipId}/attestation")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','ADMIN')")
+    @PreAuthorize("hasAnyRole('ENTREPRISE','CHEF_DEPARTEMENT_STAGE','ADMIN')")
     public DocumentDto.Response generateAttestation(@AuthenticationPrincipal AuthenticatedUser me,
                                                     @PathVariable Long internshipId) {
         return DocumentDto.Response.from(attestations.generate(me, internshipId));
+    }
+
+    /**
+     * Lettre d'affectation, editee par le service des stages a la demande
+     * de l'etudiant. C'est l'ecole qui affecte, elle seule la signe.
+     */
+    @PostMapping("/internships/{internshipId}/lettre-affectation")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','ADMIN')")
+    public DocumentDto.Response generateLettreAffectation(
+            @AuthenticationPrincipal AuthenticatedUser me,
+            @PathVariable Long internshipId) {
+        return DocumentDto.Response.from(lettres.generate(me, internshipId));
     }
 }

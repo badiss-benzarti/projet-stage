@@ -26,6 +26,20 @@ public class Lookup {
         return call(() -> internships.byId(id, bearer()), "stage " + id);
     }
 
+    /**
+     * Profil detaille du stagiaire, au mieux : l'endpoint est ferme au
+     * role ETUDIANT. Un echec laisse les mentions correspondantes vides
+     * sur l'attestation plutot que d'empecher de la produire.
+     */
+    public UserClient.Ref studentDetails(Long id) {
+        try {
+            return users.studentById(id, bearer());
+        } catch (Exception e) {
+            log.debug("Profil detaille indisponible pour l'etudiant {} : {}", id, e.getMessage());
+            return null;
+        }
+    }
+
     private <T> T call(Supplier<T> supplier, String quoi) {
         try {
             return supplier.get();

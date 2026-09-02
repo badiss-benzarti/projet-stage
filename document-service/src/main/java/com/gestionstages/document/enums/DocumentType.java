@@ -9,6 +9,16 @@ public enum DocumentType {
     /** Lettre d'affectation signee. */
     LETTRE_AFFECTATION,
 
+    /**
+     * Journal de stage rendu signe.
+     *
+     * A ne pas confondre avec le PDF que produit evaluation-service :
+     * celui-ci est genere depuis les taches saisies, imprime, puis
+     * signe par le maitre de stage et cachete par l'entreprise avant
+     * d'etre redepose ici. C'est la version signee qui fait foi.
+     */
+    JOURNAL,
+
     /** Rapport de stage final. */
     RAPPORT,
 
@@ -25,9 +35,9 @@ public enum DocumentType {
     /** Attestation de scolarite, justifiant l'inscription de l'etudiant. */
     ATTESTATION_SCOLARITE;
 
-    /** Une attestation peut etre produite par la plateforme, pas les autres. */
+    /** Documents que la plateforme sait produire elle-meme. */
     public boolean isGenerable() {
-        return this == ATTESTATION;
+        return this == ATTESTATION || this == LETTRE_AFFECTATION;
     }
 
     /**

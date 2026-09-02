@@ -17,18 +17,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 /**
- * Generation de l'attestation de stage en ligne.
+ * Attestation de stage delivree par l'entreprise d'accueil.
  *
- * Le cahier des charges la reserve aux stages effectues a la DSI et chez
- * EspritTech : ce sont les structures internes, dont l'ecole peut attester
- * elle-meme. Pour un stage externe, l'attestation vient de l'entreprise et
- * doit etre DEPOSEE, pas generee.
+ * C'est elle qui certifie qu'un stage a bien ete effectue chez elle :
+ * l'ecole ne peut pas l'attester a sa place. Le document reprend
+ * l'imprime que les entreprises redigent a la main - signataire,
+ * societe, etudiant, sujet, periode - et laisse le cachet et la
+ * signature a apposer.
+ *
+ * Il est produit apres cloture du stage, a la demande de l'etudiant.
  */
 @Slf4j
 @Service
@@ -43,9 +46,6 @@ public class AttestationService {
     private final PdfExporter pdf;
     private final Lookup lookup;
 
-    @Value("${app.attestation.structures-internes:DSI,EspritTech}")
-    private List<String> structuresInternes;
-
     @Value("${app.attestation.etablissement:ESPRIT}")
     private String etablissement;
 
@@ -56,12 +56,10 @@ public class AttestationService {
     public Document generate(AuthenticatedUser me, Long internshipId) {
         InternshipClient.InternshipRef stage = lookup.internship(internshipId);
 
-        if (!estStructureInterne(stage.companyName())) {
-            throw new ApiExceptions.BusinessRuleException(
-                    "L'attestation n'est generee que pour les stages effectues a "
-                            + String.join(" ou ", structuresInternes)
-                            + ". Pour une structure externe, deposez l'attestation fournie par l'entreprise.");
-        }
+        // L'attestation est desormais delivree par l'entreprise d'accueil,
+        // qui atteste d'un stage effectue chez elle. La restriction aux
+        // structures internes n'a plus lieu d'etre : elle existait parce
+        // que l'ecole ne pouvait pas attester a la place d'un tiers.
         if (!"COMPLETED".equals(stage.status())) {
             throw new ApiExceptions.BusinessRuleException(
                     "L'attestation n'est delivree qu'apres cloture du stage (etat actuel : "
@@ -101,33 +99,67 @@ public class AttestationService {
         return d;
     }
 
-    private boolean estStructureInterne(String entreprise) {
-        if (entreprise == null) return false;
-        String normalise = entreprise.toLowerCase();
-        return structuresInternes.stream()
-                .anyMatch(s -> normalise.contains(s.toLowerCase()));
-    }
-
     private Map<String, Object> variables(InternshipClient.InternshipRef stage, AuthenticatedUser me) {
+        var etudiant = lookup.studentDetails(stage.studentId());
+
         Map<String, Object> v = new HashMap<>();
-        v.put("etablissement", etablissement);
-        v.put("service", stage.companyName());
+
+        // L'entreprise signe : c'est son nom qui coiffe le document, et
+        // le signataire est celui qui la represente - le contact declare
+        // sur le dossier, ou a defaut la personne connectee.
+        v.put("entreprise", nvl(stage.companyName(), "l'entreprise d'accueil"));
+        v.put("adresseEntreprise", champ(stage.companyAddress()));
+        v.put("signataire", nvl(stage.contactName(), me.fullName()));
+
         v.put("etudiant", stage.studentName());
-        v.put("classe", "-");
-        v.put("type", "PFE".equals(stage.type()) ? "Projet de fin d'etudes" : "Stage d'ete");
+        v.put("etablissement", etudiant == null || etudiant.institutionName() == null
+                ? etablissement : etudiant.institutionName());
+        v.put("filiere", champ(etudiant == null ? null : etudiant.classe()));
+        v.put("cin", champ(etudiant == null ? null : etudiant.cin()));
+
+        v.put("type", "PFE".equals(stage.type()) ? "de fin d'etudes" : "d'immersion");
         v.put("sujet", stage.title());
-        v.put("entreprise", stage.companyName());
-        v.put("encadrant", stage.supervisorName() == null ? "-" : stage.supervisorName());
-        v.put("periode", periode(stage));
+        v.put("duree", duree(stage));
+        v.put("debut", stage.startDate() == null ? "" : stage.startDate().format(JOUR));
+        v.put("fin", stage.endDate() == null ? "" : stage.endDate().format(JOUR));
+
         v.put("lieuDate", "Fait a " + lieu + ", le " + LocalDate.now().format(JOUR));
-        v.put("signataire", me.fullName());
         v.put("reference", "Reference ATT-" + stage.id() + "-" + LocalDate.now().getYear()
                 + " | Document genere par la plateforme de gestion des stages");
         return v;
     }
 
-    private String periode(InternshipClient.InternshipRef stage) {
-        if (stage.startDate() == null || stage.endDate() == null) return "Non precisee";
-        return "du " + stage.startDate().format(JOUR) + " au " + stage.endDate().format(JOUR);
+    /**
+     * Duree en clair, comme sur les attestations manuscrites : on lit
+     * "un mois et demi", pas "45 jours".
+     */
+    private String duree(InternshipClient.InternshipRef stage) {
+        if (stage.startDate() == null || stage.endDate() == null) {
+            return "";
+        }
+        long jours = ChronoUnit.DAYS.between(stage.startDate(), stage.endDate());
+        long mois = jours / 30;
+        long reste = jours % 30;
+
+        if (mois == 0) {
+            return jours + " jours";
+        }
+        String base = mois == 1 ? "un mois" : mois + " mois";
+        if (reste >= 20) {
+            return base + " et trois quarts";
+        }
+        if (reste >= 10) {
+            return base + " et demi";
+        }
+        return base;
+    }
+
+    private String nvl(String v, String defaut) {
+        return (v == null || v.isBlank()) ? defaut : v;
+    }
+
+    /** Une mention absente se laisse en blanc, comme sur l'imprime papier. */
+    private String champ(String v) {
+        return (v == null || v.isBlank()) ? "" : v;
     }
 }

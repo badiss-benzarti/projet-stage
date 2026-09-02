@@ -4,66 +4,66 @@
     <meta charset="UTF-8" />
     <title>Attestation de stage</title>
     <style>
-        @page { size: A4; margin: 25mm 22mm; }
-        body { font-family: Helvetica, sans-serif; font-size: 11pt; color: #17212a; line-height: 1.6; }
+        @page { size: A4; margin: 22mm 20mm; }
+        body { font-family: Helvetica, sans-serif; font-size: 11pt; color: #14181b; line-height: 1.65; }
 
-        .entete { text-align: center; border-bottom: 2pt solid #12556b; padding-bottom: 10pt; margin-bottom: 26pt; }
-        .entete .etab { font-size: 13pt; font-weight: bold; color: #12556b; letter-spacing: 0.6pt; }
-        .entete .service { font-size: 9pt; color: #5a6a74; margin-top: 2pt; }
+        /*
+          En-tete : le nom de l'entreprise qui delivre l'attestation.
+          Pas de logo - la plateforme n'en detient aucun, et en inventer
+          un donnerait a l'attestation une caution qu'elle n'a pas.
+        */
+        .emetteur { text-align: right; margin-bottom: 30pt; }
+        .emetteur .nom { font-size: 13pt; font-weight: bold; letter-spacing: 0.5pt; }
+        .emetteur .adresse { font-size: 8.5pt; color: #55606a; margin-top: 2pt; }
 
-        h1 { font-size: 16pt; text-align: center; font-weight: normal; letter-spacing: 2.5pt;
-             text-transform: uppercase; margin: 0 0 26pt 0; color: #12556b; }
+        h1 { font-size: 17pt; text-align: center; font-weight: normal;
+             margin: 0 0 34pt 0; }
 
-        p { margin: 0 0 12pt 0; text-align: justify; }
+        p { margin: 0 0 14pt 0; text-align: justify; }
         .fort { font-weight: bold; }
 
-        table.recap { width: 100%; border-collapse: collapse; margin: 16pt 0 20pt 0; }
-        table.recap td { padding: 5pt 0; font-size: 10.5pt; vertical-align: top; }
-        table.recap td.cle { color: #5a6a74; width: 32%; }
+        .signature { margin-top: 46pt; }
+        .signature .lieu { margin-bottom: 26pt; font-size: 10.5pt; }
+        .signature .cachet { text-align: right; font-weight: bold; font-size: 10.5pt; }
 
-        .signature { margin-top: 40pt; text-align: right; font-size: 10pt; }
-        .signature .lieu { margin-bottom: 34pt; }
-        .signature .qualite { color: #5a6a74; font-size: 9pt; }
-
-        .pied { position: running(pied); }
-        .reference { margin-top: 30pt; font-size: 7.5pt; color: #9aa5ab;
+        .reference { margin-top: 46pt; font-size: 7.5pt; color: #9aa5ab;
                      border-top: 0.5pt solid #d7dfe4; padding-top: 5pt; }
     </style>
 </head>
 <body>
 
-<div class="entete">
-    <div class="etab" th:text="${etablissement}">ESPRIT</div>
-    <div class="service" th:text="${service}">Direction des Systemes d'Information</div>
+<div class="emetteur">
+    <div class="nom" th:text="${entreprise}">Entreprise</div>
+    <div class="adresse" th:text="${adresseEntreprise}"></div>
 </div>
 
 <h1>Attestation de stage</h1>
 
-<p>Je soussigne, responsable du service des stages, atteste que&#160;:</p>
-
-<table class="recap">
-    <tr><td class="cle">Nom et prenom</td><td class="fort" th:text="${etudiant}">Nom</td></tr>
-    <tr><td class="cle">Classe</td><td th:text="${classe}">4SAE3</td></tr>
-    <tr><td class="cle">Nature du stage</td><td th:text="${type}">Projet de fin d'etudes</td></tr>
-    <tr><td class="cle">Sujet</td><td th:text="${sujet}">Sujet du stage</td></tr>
-    <tr><td class="cle">Structure d'accueil</td><td th:text="${entreprise}">Entreprise</td></tr>
-    <tr><td class="cle">Encadrant</td><td th:text="${encadrant}">Encadrant</td></tr>
-    <tr><td class="cle">Periode</td><td th:text="${periode}">Periode</td></tr>
-</table>
-
 <p>
-    a effectue le stage mentionne ci-dessus au sein de notre structure, et s'en est
-    acquitte de maniere satisfaisante.
+    Je soussigne, <span class="fort" th:text="${signataire}">Nom du signataire</span>,
+    representant de la societe <span class="fort" th:text="${entreprise}">Entreprise</span><span
+        th:if="${!#strings.isEmpty(adresseEntreprise)}">, sise a <span th:text="${adresseEntreprise}"></span></span>.
 </p>
 
 <p>
-    La presente attestation est delivree a l'interesse pour servir et valoir ce que de droit.
+    Certifie que <span class="fort" th:text="${etudiant}">Nom de l'etudiant</span>,
+    etudiant a <span th:text="${etablissement}">ESPRIT</span><span
+        th:if="${!#strings.isEmpty(filiere)}">, filiere : <span th:text="${filiere}"></span></span><span
+        th:if="${!#strings.isEmpty(cin)}">, titulaire de la CIN n&#176;<span th:text="${cin}"></span></span>,
+    a effectue un stage <span th:text="${type}">d'immersion</span> dans notre etablissement
+    &#171;&#160;<span th:text="${sujet}">Sujet du stage</span>&#160;&#187;<span
+        th:if="${!#strings.isEmpty(duree)}"> d'une periode de <span th:text="${duree}"></span></span>
+    du <span th:text="${debut}">date</span> jusqu'au <span th:text="${fin}">date</span>.
+</p>
+
+<p>
+    La presente attestation est etablie pour servir et valoir ce que de droit.
 </p>
 
 <div class="signature">
     <div class="lieu" th:text="${lieuDate}">Fait a Tunis, le ...</div>
-    <div class="fort">Le responsable du service des stages</div>
-    <div class="qualite" th:text="${signataire}">Nom du signataire</div>
+    <!-- Le cachet et la signature sont apposes a la main sur l'imprime. -->
+    <div class="cachet">Cachet et signature de l'employeur</div>
 </div>
 
 <div class="reference">

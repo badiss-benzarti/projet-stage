@@ -22,3 +22,13 @@ app:
     structures-internes: DSI,EspritTech
     etablissement: ESPRIT
     lieu: Tunis
+
+  # Lettre d'affectation, editee par le service des stages.
+  # Le contrat d'assurance est propre a l'ecole : laisse vide, la
+  # mention correspondante disparait de la lettre.
+  lettre:
+    etablissement: esprit
+    lieu: Tunis
+    direction: Direction des Stages
+    assureur: ${ASSUREUR:GAT Assurances}
+    contrat-assurance: ${CONTRAT_ASSURANCE:}

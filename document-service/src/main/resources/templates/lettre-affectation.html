@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Lettre d'affectation</title>
+    <style>
+        @page { size: A4; margin: 20mm 22mm; }
+        body { font-family: Helvetica, sans-serif; font-size: 11pt; color: #14181b; line-height: 1.7; }
+
+        /*
+          En-tete de l'ecole : c'est elle qui edite la lettre. Le logo
+          n'est pas embarque - la plateforme n'en detient pas le fichier -
+          le nom est donc compose typographiquement.
+        */
+        .ecole .marque { font-size: 22pt; font-weight: bold; color: #14181b; letter-spacing: -0.5pt; }
+        .ecole .devise { font-size: 8pt; color: #55606a; margin-top: -2pt; }
+
+        .date { text-align: right; font-weight: bold; font-size: 10.5pt; margin: 26pt 0 34pt 0; }
+
+        h1 { font-size: 14pt; text-align: center; font-weight: bold; margin: 0 0 40pt 0; }
+
+        table.parties { width: 100%; border-collapse: collapse; margin-bottom: 30pt; }
+        table.parties td { padding: 4pt 0; font-size: 11pt; }
+        table.parties td.cle { font-weight: bold; white-space: nowrap; width: 34%; }
+        .centre { text-align: center; }
+
+        p { margin: 0 0 14pt 0; text-align: justify; }
+        .fort { font-weight: bold; }
+
+        .signature { margin-top: 46pt; text-align: right; font-size: 10.5pt; }
+        .signature .nom { font-weight: bold; }
+        .signature .qualite { font-weight: bold; }
+        .cachet { margin-top: 40pt; text-align: right; font-size: 8pt; color: #9aa5ab; }
+
+        .reference { margin-top: 40pt; font-size: 7.5pt; color: #9aa5ab;
+                     border-top: 0.5pt solid #d7dfe4; padding-top: 5pt; }
+    </style>
+</head>
+<body>
+
+<div class="ecole">
+    <div class="marque" th:text="${etablissement}">esprit</div>
+    <div class="devise">Se former autrement</div>
+</div>
+
+<div class="date" th:text="${lieuDate}">Tunis, le 05/08/2021</div>
+
+<h1>Lettre d'affectation</h1>
+
+<table class="parties">
+    <tr>
+        <td class="cle">La societe :</td>
+        <td th:text="${entreprise}">Entreprise</td>
+    </tr>
+    <tr>
+        <td class="cle centre">L'etudiant(e) :</td>
+        <td th:text="${etudiant}">Nom de l'etudiant</td>
+    </tr>
+    <tr>
+        <td class="cle centre">Inscrit(e) en :</td>
+        <td class="fort" th:text="${inscription}">1ere Annee Informatique</td>
+    </tr>
+</table>
+
+<p>
+    est affecte(e) a &#171;<span class="fort" th:text="${entreprise}">Entreprise</span>&#187;
+    pour effectuer un stage obligatoire, et ce du
+    <span class="fort" th:text="${debut}">01/08/2021</span> au
+    <span class="fort" th:text="${fin}">31/08/2021</span>.
+</p>
+
+<p th:if="${!#strings.isEmpty(contratAssurance)}">
+    Par ailleurs, il/elle est assure(e) aupres de <span th:text="${assureur}">GAT Assurances</span>
+    par le contrat N&#176;<span th:text="${contratAssurance}">201209100016</span>.
+</p>
+
+<div class="signature">
+    <div class="nom" th:text="${signataire}">Nom du signataire</div>
+    <div class="qualite" th:text="${direction}">Direction des Stages</div>
+</div>
+
+<!-- Le cachet de l'ecole est appose a la main sur l'imprime. -->
+<div class="cachet">Cachet de l'etablissement</div>
+
+<div class="reference">
+    <span th:text="${reference}">Reference</span>
+</div>
+
+</body>
+</html>
