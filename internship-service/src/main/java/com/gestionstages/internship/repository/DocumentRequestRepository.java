@@ -22,4 +22,11 @@ public interface DocumentRequestRepository extends JpaRepository<DocumentRequest
     boolean existsByStudentIdAndTypeAndStatus(Long studentId, RequestType type, RequestStatus status);
 
     Page<DocumentRequest> findByStatus(RequestStatus status, Pageable pageable);
+
+    /** File du service des stages, hors documents delivres par l'entreprise. */
+    Page<DocumentRequest> findByStatusAndTypeNot(RequestStatus status, RequestType type,
+                                                 Pageable pageable);
+
+    /** File de l'entreprise : ce qu'elle seule peut delivrer. */
+    List<DocumentRequest> findByStatusAndType(RequestStatus status, RequestType type);
 }

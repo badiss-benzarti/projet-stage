@@ -115,11 +115,31 @@ public class DocumentRequestService {
                 .toList();
     }
 
-    /** La file d'instruction du service des stages. */
+    /**
+     * La file d'instruction du service des stages.
+     *
+     * L'attestation de stage en est exclue : c'est l'entreprise qui la
+     * delivre, l'ecole n'a pas a se prononcer sur un stage effectue
+     * ailleurs. Elle apparait dans la file de l'entreprise.
+     */
     @Transactional(readOnly = true)
     public Page<DocumentRequestDto.Response> pending(Pageable pageable) {
-        return requests.findByStatus(RequestStatus.PENDING, pageable)
+        return requests.findByStatusAndTypeNot(
+                        RequestStatus.PENDING, RequestType.ATTESTATION_STAGE, pageable)
                 .map(DocumentRequestDto.Response::from);
+    }
+
+    /** Les demandes adressees a l'entreprise pour ses propres stagiaires. */
+    @Transactional(readOnly = true)
+    public List<DocumentRequestDto.Response> pendingForCompany(AuthenticatedUser me) {
+        Long companyId = lookup.company().id();
+
+        return requests.findByStatusAndType(RequestStatus.PENDING, RequestType.ATTESTATION_STAGE)
+                .stream()
+                .filter(r -> r.getInternship() != null
+                        && companyId.equals(r.getInternship().getCompanyId()))
+                .map(DocumentRequestDto.Response::from)
+                .toList();
     }
 
     /**
@@ -139,6 +159,21 @@ public class DocumentRequestService {
         if (r.getStatus() != RequestStatus.PENDING) {
             throw new ApiExceptions.BusinessRuleException(
                     "Cette demande a deja ete traitee");
+        }
+
+        // Chacun repond de ce qu'il delivre : l'entreprise ne traite que
+        // les attestations de ses propres stagiaires, l'ecole ne se
+        // prononce pas sur un stage effectue ailleurs.
+        boolean entreprise = "ENTREPRISE".equals(me.role());
+        if (entreprise != r.getType().delivreeParEntreprise()) {
+            throw new ApiExceptions.ForbiddenException(
+                    r.getType().delivreeParEntreprise()
+                            ? "Cette attestation est delivree par l'entreprise d'accueil"
+                            : "Ce document est delivre par le service des stages");
+        }
+        if (entreprise && (r.getInternship() == null
+                || !lookup.company().id().equals(r.getInternship().getCompanyId()))) {
+            throw new ApiExceptions.ForbiddenException("Ce stagiaire n'est pas le votre");
         }
         if (decision.status() == RequestStatus.PENDING) {
             throw new ApiExceptions.BusinessRuleException(

@@ -63,8 +63,16 @@ public class DocumentRequestController {
         return requests.pending(pageable);
     }
 
+    /** Les attestations de stage que ses propres stagiaires lui demandent. */
+    @GetMapping("/requests/company")
+    @PreAuthorize("hasRole('ENTREPRISE')")
+    public List<DocumentRequestDto.Response> pendingForCompany(
+            @AuthenticationPrincipal AuthenticatedUser me) {
+        return requests.pendingForCompany(me);
+    }
+
     @PatchMapping("/requests/{requestId}")
-    @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','ADMIN')")
+    @PreAuthorize("hasAnyRole('ENTREPRISE','CHEF_DEPARTEMENT_STAGE','ADMIN')")
     public DocumentRequestDto.Response decide(@AuthenticationPrincipal AuthenticatedUser me,
                                               @PathVariable Long requestId,
                                               @Valid @RequestBody DocumentRequestDto.Decision decision) {
@@ -76,7 +84,7 @@ public class DocumentRequestController {
      * document-service, jamais par le navigateur.
      */
     @PatchMapping("/requests/{requestId}/issued")
-    @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','ADMIN')")
+    @PreAuthorize("hasAnyRole('ENTREPRISE','CHEF_DEPARTEMENT_STAGE','ADMIN')")
     public DocumentRequestDto.Response markIssued(@PathVariable Long requestId,
                                                   @Valid @RequestBody DocumentRequestDto.Issued body) {
         return requests.markIssued(requestId, body);

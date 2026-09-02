@@ -25,10 +25,16 @@ public enum RequestType {
 
     /**
      * Attestation de presence, delivree PENDANT le stage. A ne pas
-     * confondre avec l'attestation de stage, qui atteste d'un stage
-     * accompli et n'est editee qu'apres cloture.
+     * confondre avec l'attestation de stage ci-dessous.
      */
-    ATTESTATION_PRESENCE("Attestation de presence");
+    ATTESTATION_PRESENCE("Attestation de presence"),
+
+    /**
+     * Attestation de stage : l'entreprise certifie que le stage a bien
+     * ete effectue chez elle. C'est donc ELLE qui la delivre, et non le
+     * service des stages, et seulement une fois le stage cloture.
+     */
+    ATTESTATION_STAGE("Attestation de stage");
 
     private final String libelle;
 
@@ -45,5 +51,14 @@ public enum RequestType {
      */
     public boolean requiresInternship() {
         return this != DEMANDE_STAGE && this != ATTESTATION_SCOLARITE;
+    }
+
+    /**
+     * Vrai si c'est l'entreprise d'accueil qui delivre le document, et
+     * non le service des stages. La demande ne part alors pas dans la
+     * file d'instruction de l'ecole.
+     */
+    public boolean delivreeParEntreprise() {
+        return this == ATTESTATION_STAGE;
     }
 }

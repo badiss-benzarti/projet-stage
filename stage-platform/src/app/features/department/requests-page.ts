@@ -5,6 +5,7 @@ import {
   DocumentRequest,
   REQUEST_TYPE_LABELS,
 } from '../../core/models/internship.models';
+import { DocumentService } from '../../core/services/document.service';
 import { InternshipService } from '../../core/services/internship.service';
 import { EmptyState } from '../../shared/empty-state';
 import { Spinner } from '../../shared/spinner';
@@ -23,6 +24,7 @@ import { Spinner } from '../../shared/spinner';
 })
 export class RequestsPage {
   private readonly internships = inject(InternshipService);
+  private readonly documents = inject(DocumentService);
 
   protected readonly chargement = signal(true);
   protected readonly envoi = signal(false);
@@ -44,8 +46,54 @@ export class RequestsPage {
     });
   }
 
+  /**
+   * Accepter, produire le PDF, puis le rattacher a la demande.
+   *
+   * Les trois etapes s'enchainent ici parce qu'elles vivent dans deux
+   * services distincts : internship-service instruit la demande,
+   * document-service edite le fichier. Si l'edition echoue, la demande
+   * reste acceptee mais sans document - c'est precisement l'etat que
+   * markIssued sert a distinguer, et le message le dit.
+   */
   protected editer(demande: DocumentRequest): void {
-    this.decider(demande.id, 'ISSUED');
+    if (this.envoi()) {
+      return;
+    }
+    this.envoi.set(true);
+    this.erreur.set(null);
+
+    this.internships.decideRequest(demande.id, 'ISSUED').subscribe({
+      next: () => {
+        if (demande.type !== 'LETTRE_AFFECTATION' || demande.internshipId === null) {
+          this.retirer(demande.id);
+          return;
+        }
+        this.documents.genererLettreAffectation(demande.internshipId).subscribe({
+          next: (doc) =>
+            this.internships.markRequestIssued(demande.id, doc.id).subscribe({
+              next: () => this.retirer(demande.id),
+              error: () => this.retirer(demande.id),
+            }),
+          error: (e: { error?: { message?: string } }) => {
+            this.envoi.set(false);
+            this.erreur.set(
+              'Demande acceptée, mais le document n’a pas pu être édité : ' +
+                (e.error?.message ?? 'erreur inconnue'),
+            );
+          },
+        });
+      },
+      error: (e: { error?: { message?: string } }) => {
+        this.envoi.set(false);
+        this.erreur.set(e.error?.message ?? 'Décision impossible.');
+      },
+    });
+  }
+
+  private retirer(id: number): void {
+    this.demandes.update((liste) => liste.filter((d) => d.id !== id));
+    this.envoi.set(false);
+    this.annulerRefus();
   }
 
   protected commencerRefus(demande: DocumentRequest): void {

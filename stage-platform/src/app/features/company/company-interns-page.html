@@ -3,6 +3,56 @@
   <h1 class="mt-1 text-2xl font-medium text-sand-900">Mes stagiaires</h1>
 </header>
 
+<!--
+  Attestations reclamees par les stagiaires. Placees avant la liste :
+  c'est une demande qui attend une reponse, alors que la liste ne fait
+  que rendre compte.
+-->
+@if (attestations().length > 0) {
+  <section class="mb-6 rounded-[6px] border border-warn-500/25 bg-warn-50/50">
+    <div class="border-b border-warn-500/20 px-6 py-4">
+      <p class="eyebrow">Attestations de stage demandées</p>
+      <p class="mt-1 text-sm text-sand-600">
+        Vous certifiez que le stage a bien été effectué chez vous. Le document est
+        généré à votre nom ; il vous reste à l’imprimer, le signer et le cacheter.
+      </p>
+    </div>
+    <ul class="divide-y divide-warn-500/15">
+      @for (demande of attestations(); track demande.id) {
+        <li class="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-sand-900">{{ demande.studentName }}</p>
+            <p class="mt-0.5 truncate text-xs text-sand-500">
+              {{ demande.internshipTitle }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" [disabled]="envoi() !== null" (click)="delivrer(demande)"
+              class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">
+              {{ envoi() === demande.id ? 'Édition…' : 'Délivrer l’attestation' }}
+            </button>
+            <button type="button" [disabled]="envoi() !== null" (click)="refuser(demande)"
+              class="text-sm text-sand-500 transition-colors hover:text-bad-700 disabled:opacity-60">
+              Refuser
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
+@if (erreur(); as message) {
+  <p class="mb-4 rounded-[6px] border border-bad-500/25 bg-bad-50 px-4 py-3 text-sm text-bad-700">
+    {{ message }}
+  </p>
+}
+@if (succes(); as message) {
+  <p class="mb-4 rounded-[6px] border border-ok-500/25 bg-ok-50 px-4 py-3 text-sm text-ok-700">
+    {{ message }}
+  </p>
+}
+
 @if (chargement()) {
   <gs-spinner />
 } @else {
@@ -47,6 +97,10 @@
             <dd class="text-right text-sand-800 tabular">{{ d.startDate }} → {{ d.endDate }}</dd>
           </div>
         </dl>
+
+        <div class="border-t border-sand-100 px-5 py-4">
+          <gs-student-profile-card [studentId]="d.studentId" />
+        </div>
 
         @if (d.history.length > 0) {
           <div class="border-t border-sand-100 px-5 py-4">

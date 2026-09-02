@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,10 +56,19 @@ public class InternshipController {
         internships.deleteDraft(me, id);
     }
 
+    /**
+     * Les dossiers de l'etudiant, le plus recent d'abord.
+     *
+     * Le tri est explicite : sans lui, une page de taille 1 renvoyait un
+     * dossier arbitraire, et l'etudiant qui a plusieurs demandes voyait
+     * les documents d'un autre que le sien.
+     */
     @GetMapping("/mine")
     @PreAuthorize("hasRole('ETUDIANT')")
-    public Page<InternshipDto.Response> mine(@AuthenticationPrincipal AuthenticatedUser me,
-                                             @PageableDefault(size = 10) Pageable pageable) {
+    public Page<InternshipDto.Response> mine(
+            @AuthenticationPrincipal AuthenticatedUser me,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC)
+            Pageable pageable) {
         return internships.mine(me, pageable);
     }
 
