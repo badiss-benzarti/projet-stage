@@ -19,14 +19,31 @@ public final class DocumentRequestDto {
             @Size(max = 1000) String reason
     ) {}
 
+    /** Rattachement du fichier produit, envoye par le document-service. */
+    public record Issued(
+            @NotNull(message = "L'identifiant du document est obligatoire") Long documentId
+    ) {}
+
     public record Response(
-            Long id, Long internshipId, RequestType type, RequestStatus status,
-            String reason, String processedBy, String createdAt
+            Long id,
+            Long studentId, String studentName, String studentEmail,
+            Long internshipId, String internshipTitle, String companyName,
+            RequestType type, String typeLabel, RequestStatus status,
+            String reason, String processedBy, String processedAt,
+            Long documentId, String createdAt
     ) {
         public static Response from(DocumentRequest r) {
+            var stage = r.getInternship();
             return new Response(
-                    r.getId(), r.getInternship().getId(), r.getType(), r.getStatus(),
+                    r.getId(),
+                    r.getStudentId(), r.getStudentName(), r.getStudentEmail(),
+                    stage == null ? null : stage.getId(),
+                    stage == null ? null : stage.getTitle(),
+                    stage == null ? null : stage.getCompanyName(),
+                    r.getType(), r.getType().libelle(), r.getStatus(),
                     r.getReason(), r.getProcessedBy(),
+                    r.getProcessedAt() == null ? null : r.getProcessedAt().toString(),
+                    r.getDocumentId(),
                     r.getCreatedAt() == null ? null : r.getCreatedAt().toString());
         }
     }

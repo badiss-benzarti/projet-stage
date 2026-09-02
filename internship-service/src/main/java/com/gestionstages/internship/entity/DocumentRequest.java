@@ -8,11 +8,16 @@ import lombok.*;
 import java.time.Instant;
 
 /**
- * Demande de convention ou de lettre d'affectation.
+ * Demande d'un document administratif au service des stages.
  *
  * Distincte du document-service : ici on gere la DEMANDE et son
- * instruction par le service des stages ; le fichier signe, lui, est
- * depose et valide dans le document-service.
+ * instruction ; le fichier, lui, est produit et conserve par le
+ * document-service.
+ *
+ * Le stage est FACULTATIF. Une demande de stage est reclamee avant que
+ * l'etudiant ait trouve son entreprise : la rattacher a un dossier
+ * obligerait a creer un dossier vide pour pouvoir demander la lettre qui
+ * sert justement a le remplir. L'etudiant, lui, est toujours connu.
  */
 @Entity
 @Table(name = "document_requests")
@@ -23,8 +28,19 @@ public class DocumentRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "internship_id", nullable = false,
+    /** Etudiant demandeur : la seule partie toujours presente. */
+    @Column(name = "student_id", nullable = false)
+    private Long studentId;
+
+    @Column(name = "student_name", nullable = false, length = 120)
+    private String studentName;
+
+    @Column(name = "student_email", length = 120)
+    private String studentEmail;
+
+    /** Nul pour une demande de stage, renseigne pour les autres types. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "internship_id",
                 foreignKey = @ForeignKey(name = "fk_request_internship"))
     private Internship internship;
 
@@ -46,6 +62,10 @@ public class DocumentRequest {
 
     @Column(name = "processed_at")
     private Instant processedAt;
+
+    /** Identifiant du fichier produit par le document-service, une fois delivre. */
+    @Column(name = "document_id")
+    private Long documentId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

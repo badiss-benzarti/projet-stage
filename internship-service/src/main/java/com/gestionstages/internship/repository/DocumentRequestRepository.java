@@ -13,7 +13,13 @@ public interface DocumentRequestRepository extends JpaRepository<DocumentRequest
 
     List<DocumentRequest> findByInternshipId(Long internshipId);
 
+    /** Toutes les demandes d'un etudiant, y compris celles sans stage rattache. */
+    List<DocumentRequest> findByStudentIdOrderByIdDesc(Long studentId);
+
     boolean existsByInternshipIdAndTypeAndStatus(Long internshipId, RequestType type, RequestStatus status);
+
+    /** Garde-fou des demandes sans stage : une seule en attente a la fois. */
+    boolean existsByStudentIdAndTypeAndStatus(Long studentId, RequestType type, RequestStatus status);
 
     Page<DocumentRequest> findByStatus(RequestStatus status, Pageable pageable);
 }

@@ -32,6 +32,26 @@ public class DocumentRequestController {
         return requests.request(me, id, body);
     }
 
+    /**
+     * Demande sans dossier : demande de stage, attestation de scolarite.
+     * Volontairement hors de /{id}/requests, puisqu'il n'y a pas d'{id}.
+     */
+    @PostMapping("/requests")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ETUDIANT')")
+    public DocumentRequestDto.Response requestStandalone(
+            @AuthenticationPrincipal AuthenticatedUser me,
+            @Valid @RequestBody DocumentRequestDto.Request body) {
+        return requests.requestStandalone(me, body);
+    }
+
+    /** Les demandes de l'etudiant connecte, tous dossiers confondus. */
+    @GetMapping("/requests/mine")
+    @PreAuthorize("hasRole('ETUDIANT')")
+    public List<DocumentRequestDto.Response> mine(@AuthenticationPrincipal AuthenticatedUser me) {
+        return requests.mine(me);
+    }
+
     @GetMapping("/{id}/requests")
     public List<DocumentRequestDto.Response> forInternship(@PathVariable Long id) {
         return requests.forInternship(id);
@@ -49,5 +69,16 @@ public class DocumentRequestController {
                                               @PathVariable Long requestId,
                                               @Valid @RequestBody DocumentRequestDto.Decision decision) {
         return requests.decide(me, requestId, decision);
+    }
+
+    /**
+     * Rattache le PDF produit a la demande. Appele par le
+     * document-service, jamais par le navigateur.
+     */
+    @PatchMapping("/requests/{requestId}/issued")
+    @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','ADMIN')")
+    public DocumentRequestDto.Response markIssued(@PathVariable Long requestId,
+                                                  @Valid @RequestBody DocumentRequestDto.Issued body) {
+        return requests.markIssued(requestId, body);
     }
 }
