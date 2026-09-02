@@ -13,16 +13,19 @@ public final class CompanyDto {
             @NotBlank @Size(max = 255) String address,
             @NotBlank @Pattern(regexp = "^[0-9+ ]{8,20}$", message = "Numero de telephone invalide") String phone,
             @NotBlank @Email @Size(max = 120) String email,
-            @Size(max = 40) String taxId
+            @Size(max = 40) String taxId,
+            @Size(max = 2000, message = "La presentation ne peut pas depasser 2000 caracteres")
+            String description
     ) {}
 
     public record Response(
             Long id, Long userId, String name, String address,
-            String phone, String email, String taxId, int supervisorCount
+            String phone, String email, String taxId, String description,
+            int supervisorCount
     ) {
         public static Response from(Company c) {
             return new Response(c.getId(), c.getUserId(), c.getName(), c.getAddress(),
-                    c.getPhone(), c.getEmail(), c.getTaxId(),
+                    c.getPhone(), c.getEmail(), c.getTaxId(), c.getDescription(),
                     c.getSupervisors() == null ? 0 : c.getSupervisors().size());
         }
     }

@@ -11,6 +11,7 @@ import { InternshipService } from '../../core/services/internship.service';
 import { InternshipTable } from '../../shared/internship-table';
 import { Spinner } from '../../shared/spinner';
 import { StatusBadge } from '../../shared/status-badge';
+import { StudentProfileCard } from '../../shared/student-profile-card';
 
 /**
  * Instruction des demandes par le service des stages.
@@ -22,7 +23,7 @@ import { StatusBadge } from '../../shared/status-badge';
 @Component({
   selector: 'gs-internship-review-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [InternshipTable, StatusBadge, Spinner],
+  imports: [InternshipTable, StatusBadge, StudentProfileCard, Spinner],
   templateUrl: './internship-review-page.html',
 })
 export class InternshipReviewPage {
@@ -45,18 +46,14 @@ export class InternshipReviewPage {
   protected readonly attestationMessage = signal<string | null>(null);
 
   /**
-   * L'attestation n'est generable que pour les structures internes et sur
-   * un stage cloture. Le backend applique la meme regle : on n'affiche le
-   * bouton que quand il a une chance d'aboutir.
+   * L'attestation revient a l'entreprise ; le service des stages garde la
+   * main pour celles qui n'ont pas de compte et repondent hors
+   * plateforme. Seule condition restante, la meme que cote backend : le
+   * stage doit etre cloture, l'attestation certifiant un stage accompli.
    */
-  protected readonly attestationPossible = computed(() => {
-    const d = this.selection();
-    if (!d || d.status !== 'COMPLETED') {
-      return false;
-    }
-    const nom = (d.companyName ?? '').toLowerCase();
-    return nom.includes('dsi') || nom.includes('espritech') || nom.includes('esprittech');
-  });
+  protected readonly attestationPossible = computed(
+    () => this.selection()?.status === 'COMPLETED',
+  );
 
   protected genererAttestation(): void {
     const d = this.selection();
@@ -124,7 +121,6 @@ export class InternshipReviewPage {
     this.charger();
   }
 
-  /** Le detail complet, avec actions et historique, vient d'un GET dedie. */
   protected ouvrir(dossier: Internship): void {
     this.erreur.set(null);
     this.annulerAction();

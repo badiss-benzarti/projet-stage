@@ -29,6 +29,7 @@ public class CompanyService {
                 .phone(req.phone())
                 .email(req.email().toLowerCase())
                 .taxId(req.taxId())
+                .description(blankToNull(req.description()))
                 .build();
         return CompanyDto.Response.from(companies.save(c));
     }
@@ -62,8 +63,13 @@ public class CompanyService {
         c.setPhone(req.phone());
         c.setEmail(req.email().toLowerCase());
         c.setTaxId(req.taxId());
+        c.setDescription(blankToNull(req.description()));
 
         return CompanyDto.Response.from(c);
+    }
+
+    private String blankToNull(String v) {
+        return (v == null || v.isBlank()) ? null : v;
     }
 
     /** Utilitaire interne : recupere l'entite de l'entreprise du porteur du jeton. */

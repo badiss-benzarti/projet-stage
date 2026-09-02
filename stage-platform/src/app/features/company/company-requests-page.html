@@ -48,12 +48,12 @@
           l'absence de piece se voie aussi vite que leur presence.
         -->
         <div class="border-b border-sand-100 px-6 py-4">
-          <p class="eyebrow mb-2">Dossier du candidat</p>
+          <gs-student-profile-card [studentId]="dossier.studentId" />
+        </div>
+
+        <div class="border-b border-sand-100 px-6 py-4">
+          <p class="eyebrow mb-2">Pièces jointes</p>
           <div class="flex flex-wrap items-center gap-2">
-            <button type="button" (click)="telechargerCv(dossier)"
-              class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700">
-              CV
-            </button>
             @for (piece of pieces(dossier); track piece.id) {
               <button type="button" (click)="telecharger(piece)"
                 class="rounded-[5px] border border-sand-300 px-3 py-1.5 text-sm text-sand-700 transition-colors hover:border-petrol-400 hover:text-petrol-700">
@@ -62,7 +62,7 @@
             }
             @if (pieces(dossier).length === 0) {
               <span class="text-xs text-sand-500">
-                Aucune autre pièce jointe à cette demande.
+                Aucune pièce jointe à cette demande.
               </span>
             }
           </div>

@@ -68,8 +68,17 @@ public class StudentController {
         return students.findAll(departement, classe, pageable);
     }
 
+    /**
+     * Fiche complete d'un etudiant.
+     *
+     * Ouverte a l'entreprise : elle doit pouvoir joindre le candidat
+     * qu'elle envisage d'accueillir, et connaitre son cursus pour se
+     * prononcer. Reste fermee a l'etudiant, qui passe par /me : sans
+     * cela, n'importe lequel lirait la fiche d'un autre.
+     */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CHEF_DEPARTEMENT_STAGE','CHEF_DEPARTEMENT_PEDAGOGIQUE','ENCADRANT','ADMIN')")
+    @PreAuthorize("hasAnyRole('ENTREPRISE','ENCADRANT','CHEF_DEPARTEMENT_STAGE',"
+            + "'CHEF_DEPARTEMENT_PEDAGOGIQUE','ADMIN')")
     public StudentDto.Response byId(@PathVariable Long id) {
         return students.findById(id);
     }

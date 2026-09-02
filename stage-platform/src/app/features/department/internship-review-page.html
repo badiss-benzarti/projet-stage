@@ -79,6 +79,10 @@
           </div>
         }
 
+        <div class="border-t border-sand-100 px-5 py-4">
+          <gs-student-profile-card [studentId]="d.studentId" />
+        </div>
+
         @if (d.rejectionReason) {
           <div class="border-t border-sand-100 px-5 py-4">
             <p class="rounded-[5px] border border-bad-500/20 bg-bad-50 px-3 py-2 text-sm text-bad-700">
@@ -91,8 +95,8 @@
           <div class="border-t border-sand-100 px-5 py-4">
             <p class="eyebrow mb-2">Attestation de stage</p>
             <p class="mb-3 text-xs leading-relaxed text-sand-500">
-              Stage effectué dans une structure interne : la plateforme peut délivrer
-              l’attestation. Pour une entreprise externe, elle doit être déposée par l’étudiant.
+              L’attestation revient normalement à l’entreprise d’accueil. Éditez-la ici
+              seulement si elle n’a pas de compte et répond hors plateforme.
             </p>
             <button type="button" [disabled]="attestationEnCours()" (click)="genererAttestation()"
               class="rounded-[5px] bg-petrol-700 px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-petrol-800 disabled:opacity-60">

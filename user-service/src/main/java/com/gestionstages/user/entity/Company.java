@@ -44,6 +44,15 @@ public class Company {
     @Column(name = "tax_id", length = 40)
     private String taxId;
 
+    /**
+     * Presentation libre de l'entreprise : activite, taille, ce qu'elle
+     * propose aux stagiaires. Lue par l'etudiant qui choisit ou postuler,
+     * elle n'entre dans aucun traitement - d'ou du texte libre plutot
+     * qu'un jeu de champs.
+     */
+    @Column(length = 2000)
+    private String description;
+
     @Builder.Default
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Supervisor> supervisors = new ArrayList<>();

@@ -12,6 +12,7 @@ import { telechargerBlob } from '../../shared/download';
 import { EmptyState } from '../../shared/empty-state';
 import { Spinner } from '../../shared/spinner';
 import { StatusBadge } from '../../shared/status-badge';
+import { StudentProfileCard } from '../../shared/student-profile-card';
 
 /**
  * Demandes transmises a l'entreprise.
@@ -27,7 +28,7 @@ import { StatusBadge } from '../../shared/status-badge';
 @Component({
   selector: 'gs-company-requests-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [StatusBadge, EmptyState, Spinner],
+  imports: [StatusBadge, StudentProfileCard, EmptyState, Spinner],
   templateUrl: './company-requests-page.html',
 })
 export class CompanyRequestsPage {
@@ -103,15 +104,6 @@ export class CompanyRequestsPage {
     this.documents.download(doc.id).subscribe({
       next: (blob) => telechargerBlob(blob, doc.originalName ?? 'document.pdf'),
       error: () => this.erreur.set('Téléchargement impossible.'),
-    });
-  }
-
-  /** Le CV vit sur le profil de l'etudiant, pas sur le dossier de stage. */
-  protected telechargerCv(dossier: Internship): void {
-    this.users.studentCvBlob(dossier.studentId).subscribe({
-      next: (blob) =>
-        telechargerBlob(blob, `cv-${dossier.studentName.replace(/\s+/g, '-')}.pdf`),
-      error: () => this.erreur.set('Ce candidat n’a pas déposé de CV.'),
     });
   }
 
