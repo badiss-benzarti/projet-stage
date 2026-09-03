@@ -1,0 +1,53 @@
+# =====================================================================
+#  Prometheus - collecte des metriques de la plateforme.
+#
+#  Les cibles sont ecrites en dur plutot que decouvertes via Eureka :
+#  le registre expose les instances sous leur adresse IP interne
+#  (prefer-ip-address), qui change a chaque recreation de conteneur,
+#  alors que les noms de services du compose sont stables et resolus
+#  par le DNS de Docker.
+# =====================================================================
+
+global:
+  # 15 s : assez fin pour voir une latence monter pendant une demo,
+  # assez large pour ne pas peser sur des services limites a 512 Mo.
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    plateforme: gestion-stages
+
+scrape_configs:
+
+  # ------------------------------------------------------------------
+  #  Services Spring : tous exposent /actuator/prometheus, et
+  #  etiquettent leurs metriques avec application=<nom du service>.
+  # ------------------------------------------------------------------
+  - job_name: services
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['discovery-server:8761']
+        labels: { service: discovery-server, couche: infrastructure }
+      - targets: ['config-server:8888']
+        labels: { service: config-server, couche: infrastructure }
+      - targets: ['api-gateway:8090']
+        labels: { service: api-gateway, couche: passerelle }
+      - targets: ['auth-service:8081']
+        labels: { service: auth-service, couche: metier }
+      - targets: ['user-service:8082']
+        labels: { service: user-service, couche: metier }
+      - targets: ['internship-service:8083']
+        labels: { service: internship-service, couche: metier }
+      - targets: ['evaluation-service:8084']
+        labels: { service: evaluation-service, couche: metier }
+      - targets: ['document-service:8085']
+        labels: { service: document-service, couche: metier }
+      - targets: ['notification-service:8086']
+        labels: { service: notification-service, couche: metier }
+
+  # ------------------------------------------------------------------
+  #  Prometheus se surveille lui-meme : sans cela, une collecte qui
+  #  s'arrete ressemble a une plateforme au repos.
+  # ------------------------------------------------------------------
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']

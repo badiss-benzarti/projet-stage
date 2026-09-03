@@ -1,0 +1,13 @@
+# Charge les tableaux de bord poses dans monitoring/grafana/dashboards.
+apiVersion: 1
+
+providers:
+  - name: gestion-stages
+    orgId: 1
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

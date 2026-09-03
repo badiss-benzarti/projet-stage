@@ -22,7 +22,14 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        # prometheus en plus : Eureka est le seul service a ne pas lire
+        # le config-server - il ne peut pas s'y enregistrer avant
+        # d'exister - donc sa configuration ne vient pas de
+        # config-repo/application.yml comme celle des autres.
+        include: health,info,prometheus
+  metrics:
+    tags:
+      application: discovery-server
   endpoint:
     health:
       show-details: always

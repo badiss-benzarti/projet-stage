@@ -1,0 +1,15 @@
+# Source de donnees declaree au demarrage : personne n'a a la creer a
+# la main, et une demonstration ne depend pas d'un clic oublie.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    # uid fixe : les panneaux du tableau de bord le referencent.
+    # Laisse a Grafana, il serait aleatoire et les panneaux pointeraient
+    # dans le vide a chaque recreation du volume.
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
