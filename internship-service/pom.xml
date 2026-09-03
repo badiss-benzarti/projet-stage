@@ -147,6 +147,34 @@
 
 	<build>
 		<plugins>
+			<!--
+				Couverture de tests. JaCoCo ne teste rien : il instrumente la
+				JVM pendant les tests et ecrit un rapport. SonarQube ne calcule
+				pas la couverture lui-meme, il lit ce rapport - sans lui il
+				affiche 0 %, quels que soient les tests ecrits.
+
+				La version vient du parent Spring Boot, comme pour les autres
+				plugins : rien a maintenir ici.
+			-->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

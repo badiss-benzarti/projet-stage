@@ -60,18 +60,44 @@ jobs:
           cache: maven
           cache-dependency-path: ${{ matrix.service }}/pom.xml
 
+      # verify declenche aussi le rapport JaCoCo, lie a cette phase.
       - name: Tests et paquetage
         working-directory: ${{ matrix.service }}
         run: ./mvnw -B verify
 
+      # Couverture lisible sans telecharger d'artefact : le chiffre
+      # s'affiche sur la page du run.
+      - name: Couverture
+        if: always()
+        working-directory: ${{ matrix.service }}
+        run: |
+          rapport=target/site/jacoco/jacoco.xml
+          if [ ! -f "$rapport" ]; then
+            echo "Pas de rapport JaCoCo." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # jacoco.xml tient sur une seule ligne : on extrait les balises
+          # avec grep -o plutot que de compter sur un decoupage en lignes.
+          # Le dernier compteur du document porte le total du module.
+          lu=$(grep -o '<counter type="LINE" missed="[0-9]*" covered="[0-9]*"' "$rapport" | tail -1)
+          manquantes=$(echo "$lu" | grep -o 'missed="[0-9]*"' | grep -o '[0-9]*')
+          couvertes=$(echo "$lu" | grep -o 'covered="[0-9]*"' | grep -o '[0-9]*')
+          total=$((manquantes + couvertes))
+          pct=0
+          [ "$total" -gt 0 ] && pct=$((couvertes * 100 / total))
+          echo "**${{ matrix.service }}** — lignes couvertes : ${pct}% (${couvertes}/${total})" \
+            >> "$GITHUB_STEP_SUMMARY"
+
       # Conserve les rapports meme quand le build echoue : c'est
       # justement la qu'ils servent.
-      - name: Rapports de tests
+      - name: Rapports de tests et de couverture
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tests-${{ matrix.service }}
-          path: ${{ matrix.service }}/target/surefire-reports/
+          name: rapports-${{ matrix.service }}
+          path: |
+            ${{ matrix.service }}/target/surefire-reports/
+            ${{ matrix.service }}/target/site/jacoco/
           if-no-files-found: ignore
           retention-days: 7
 
